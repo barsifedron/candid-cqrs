@@ -5,7 +5,7 @@ A simple an accessible CQS/CQRS code example, aimed at :
 
 1. Illustrate the CQS/CQRS usages in a simple and clear manner, even for the beginner
 2. Provide a "almost ready to use" seed that people can use as it is or really easily modify for their own usage
-3. Provide total framework independance
+3. Provide total framework independence
 4. Illustrate and insist on the fact that different flavors of CQS/CQRS exist. AKA: You probably do not need event sourcing right now and even a really simple CQS split will greatly help you in your unit testing. (Refer to the link provided for more infos on that)
 
 
@@ -18,6 +18,8 @@ Sources of inspiration :
 
 Those 3 great presentations : 
 
-https://speakerdeck.com/lilobase/cqrs-fonctionnel-event-sourcing-and-domain-driven-design-breizhcamp-2017
-https://www.slideshare.net/rosstuck/command-bus-to-awesome-town
 https://speakerdeck.com/lilobase/ddd-and-cqrs-php-tour-2018
+
+https://www.slideshare.net/rosstuck/command-bus-to-awesome-town
+
+https://speakerdeck.com/lilobase/cqrs-fonctionnel-event-sourcing-and-domain-driven-design-breizhcamp-2017
