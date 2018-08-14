@@ -1,4 +1,4 @@
 # Code of Conduct
 
 
-Don't be a D
+Don't be a Dick
