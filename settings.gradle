@@ -1,0 +1,4 @@
+rootProject.name = "candid-cqrs"
+
+include("bus-cqs", "bus-cqrs")
+

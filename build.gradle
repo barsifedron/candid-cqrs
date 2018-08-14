@@ -1,0 +1,23 @@
+plugins {
+    id("base")
+}
+
+allprojects {
+    group = 'com.barsifedron.candid.cqrs'
+    version = '1.0-SNAPSHOT'    
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    sourceCompatibility = 1.8
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation 'junit:junit:4.12'
+    }    
+}
+
