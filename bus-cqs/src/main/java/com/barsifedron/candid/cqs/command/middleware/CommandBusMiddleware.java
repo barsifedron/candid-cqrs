@@ -28,7 +28,7 @@ import static java.util.stream.Collectors.toMap;
  * decorating the SimpleBus, this is not much different. We trade-off a bit of
  * added complexity for a bit more ease to wire when instantiating the bus.
  */
-public interface CommandMiddleware {
+public interface CommandBusMiddleware {
 
     <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> next);
 
@@ -36,17 +36,17 @@ public interface CommandMiddleware {
      * The middleware in charge of dispatching the command to the right Command Handler.
      * This will only allow for one handler per command type. As it should be.
      */
-    class DispatcherMiddleware implements CommandMiddleware {
+    class DispatcherBusMiddleware implements CommandBusMiddleware {
 
         private final Map<Class, SimpleCommandHandler> handlers;
-        private final static Logger LOGGER = Logger.getLogger(DispatcherMiddleware.class.getName());
+        private final static Logger LOGGER = Logger.getLogger(DispatcherBusMiddleware.class.getName());
 
 
         /**
          * The set of handlers will usually be injected by your dependency injection tool.
          * Examples for this can be found in the other modules.
          */
-        public DispatcherMiddleware(Set<SimpleCommandHandler> commandHandlers) {
+        public DispatcherBusMiddleware(Set<SimpleCommandHandler> commandHandlers) {
             this(commandHandlers
                     .stream()
                     .collect(toMap(
@@ -54,7 +54,7 @@ public interface CommandMiddleware {
                             handler -> handler)));
         }
 
-        public DispatcherMiddleware(Map<Class, SimpleCommandHandler> handlers) {
+        public DispatcherBusMiddleware(Map<Class, SimpleCommandHandler> handlers) {
             this.handlers = handlers;
         }
 
@@ -88,11 +88,11 @@ public interface CommandMiddleware {
      * wrapping the command execution within a database transaction, etc...
      * The sky is your limit
      */
-    class ExecutionTimeMiddleware implements CommandMiddleware {
+    class ExecutionTimeBusMiddleware implements CommandBusMiddleware {
 
-        private final static Logger LOGGER = Logger.getLogger(ExecutionTimeMiddleware.class.getName());
+        private final static Logger LOGGER = Logger.getLogger(ExecutionTimeBusMiddleware.class.getName());
 
-        public ExecutionTimeMiddleware() {
+        public ExecutionTimeBusMiddleware() {
         }
 
         @Override
@@ -113,11 +113,11 @@ public interface CommandMiddleware {
      * For the sake of providing an example of a decorating middleware:
      * A middleware filtering commands, and only processing them if they implement a certain interface.
      */
-    class FilteringMiddleware<V> implements CommandMiddleware {
+    class FilteringBusMiddleware<V> implements CommandBusMiddleware {
 
         private final Class<? extends V> filteringClass;
 
-        public FilteringMiddleware(Class<? extends V> filteringClass) {
+        public FilteringBusMiddleware(Class<? extends V> filteringClass) {
             this.filteringClass = filteringClass;
         }
 
@@ -138,19 +138,19 @@ public interface CommandMiddleware {
      */
     class ExampleFactory {
 
-        private final List<CommandMiddleware> middlewares;
+        private final List<CommandBusMiddleware> middlewares;
 
         /**
          * Feel free to add as many middleware as you want
          */
-        public ExampleFactory(ExecutionTimeMiddleware executionTimeMiddleware, DispatcherMiddleware dispatcherMiddleware) {
+        public ExampleFactory(ExecutionTimeBusMiddleware executionTimeMiddleware, DispatcherBusMiddleware dispatcherMiddleware) {
             this(asList(executionTimeMiddleware, dispatcherMiddleware));
         }
 
         /**
          * This should totally be injected by you dependency injection tool. See examples in other modules.
          */
-        public ExampleFactory(List<CommandMiddleware> middlewares) {
+        public ExampleFactory(List<CommandBusMiddleware> middlewares) {
             this.middlewares = middlewares;
         }
 
@@ -184,7 +184,7 @@ public interface CommandMiddleware {
         public CommandBus simpleFilteringCommandBus() {
             Chain chainOfMiddleware = new Chain.Factory().chainOfMiddleware(
                     Stream.concat(
-                            Stream.of(new FilteringMiddleware<>(Serializable.class)),
+                            Stream.of(new FilteringBusMiddleware<>(Serializable.class)),
                             middlewares.stream())
                             .collect(Collectors.toList())
             );

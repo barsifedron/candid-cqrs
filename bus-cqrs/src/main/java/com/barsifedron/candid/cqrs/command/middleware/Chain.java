@@ -1,6 +1,8 @@
-package com.barsifedron.candid.cqs.command.middleware;
+package com.barsifedron.candid.cqrs.command.middleware;
 
-import com.barsifedron.candid.cqs.command.SimpleCommand;
+import com.barsifedron.candid.cqrs.command.middleware.CommandBusMiddleware;
+import com.barsifedron.candid.cqrs.command.CommandResponse;
+import com.barsifedron.candid.cqrs.command.Command;
 
 import java.util.List;
 
@@ -18,7 +20,7 @@ public class Chain {
         this.next = next;
     }
 
-    public <T> T handle(SimpleCommand<T> command) {
+    public <T> CommandResponse<T> handle(Command<T> command) {
         return middleware.handle(command, next::handle);
     }
 

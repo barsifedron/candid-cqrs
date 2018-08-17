@@ -1,10 +1,18 @@
-package com.barsifedron.candid.cqs.command;
+package com.barsifedron.candid.cqrs.command;
+
+import com.barsifedron.candid.cqrs.command.middleware.Chain;
+import com.barsifedron.candid.cqrs.command.middleware.CommandBusMiddleware;
+import com.barsifedron.candid.cqrs.command.CommandResponse;
+import com.barsifedron.candid.cqrs.event.EventBus;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -18,7 +26,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public interface CommandBus {
 
-    <T> T dispatch(SimpleCommand<T> command);
+    public <T> CommandResponse<T> dispatch(Command<T> command);
 
     /**
      * This is in charge of dispatching the command to the right Command Handler.
@@ -26,39 +34,39 @@ public interface CommandBus {
      */
     class Dispatcher implements CommandBus {
 
-        private final Map<Class, SimpleCommandHandler> handlers;
+        private final Map<Class, CommandHandler> handlers;
         private final static Logger LOGGER = Logger.getLogger(Dispatcher.class.getName());
 
         /**
          * The set of handlers will usually be injected by your dependency injection tool.
          * Examples for this can be found in the other modules.
          */
-        public Dispatcher(Set<? extends SimpleCommandHandler> commandHandlers) {
+        public Dispatcher(Set<? extends CommandHandler> commandHandlers) {
             this(commandHandlers.stream().collect(
                     toMap(
                             handler -> handler.listenTo(),
                             handler -> handler)));
         }
 
-        public Dispatcher(Map<Class, SimpleCommandHandler> handlers) {
+        public Dispatcher(Map<Class, CommandHandler> handlers) {
             this.handlers = handlers;
         }
 
         @Override
-        public <T> T dispatch(SimpleCommand<T> command) {
-            SimpleCommandHandler<T, SimpleCommand<T>> handler = Optional
+        public <T> CommandResponse<T> dispatch(Command<T> command) {
+            CommandHandler<T, Command<T>> handler = Optional
                     .ofNullable(command)
                     .map(c -> c.getClass())
                     .map(handlers::get)
                     .orElseThrow(() -> {
                         LOGGER.info("Could not find handler for command  of type :" + command.getClass().getName());
-                        return new SimpleCommandHandlerNotFoundException(command.getClass());
+                        return new CommandHandlerNotFoundException(command.getClass());
                     });
             return handler.handle(command);
         }
 
-        private class SimpleCommandHandlerNotFoundException extends RuntimeException {
-            public SimpleCommandHandlerNotFoundException(Class<? extends SimpleCommand> aClass) {
+        private class CommandHandlerNotFoundException extends RuntimeException {
+            public CommandHandlerNotFoundException(Class<? extends Command> aClass) {
                 super("Could not find Command Handler for command of type " + aClass.getName());
             }
         }
@@ -81,11 +89,11 @@ public interface CommandBus {
             this.next = next;
         }
 
-        public <T> T dispatch(SimpleCommand<T> command) {
+        public <T> CommandResponse<T> dispatch(Command<T> command) {
             LOGGER.info("Processing simple command of type :" + command.getClass().getName());
 
             long timeBefore = System.nanoTime();
-            T result = next.dispatch(command);
+            CommandResponse<T> result = next.dispatch(command);
             long timeAfter = System.nanoTime();
             LOGGER.info("" +
                     "Done processing simple command of type" + command.getClass().getName() +
@@ -108,11 +116,29 @@ public interface CommandBus {
             this.next = next;
         }
 
-        public <T> T dispatch(SimpleCommand<T> command) {
+        public <T> CommandResponse<T> dispatch(Command<T> command) {
             if (command.getClass().isInstance(filteringClass)) {
                 return next.dispatch(command);
             }
             return null;
+        }
+    }
+
+
+    class WithEventDispatch {
+
+        private final EventBus eventBus;
+        private final CommandBus next;
+
+        public WithEventDispatch(EventBus eventBus, CommandBus next) {
+            this.eventBus = eventBus;
+            this.next = next;
+        }
+
+        public <T> T dispatch(Command<T> command) {
+            CommandResponse<T> response = next.dispatch(command);
+            response.events.forEach(evt -> eventBus.dispatch(evt));
+            return response.result;
         }
     }
 
@@ -122,12 +148,12 @@ public interface CommandBus {
      */
     class ExampleFactory {
 
-        private final Set<SimpleCommandHandler> commandHandlers;
+        private final Set<CommandHandler> commandHandlers;
 
         /**
          * This should totally be injected by you dependency injection tool. See examples in other modules.
          */
-        public ExampleFactory(Set<SimpleCommandHandler> commandHandlers) {
+        public ExampleFactory(Set<CommandHandler> commandHandlers) {
             this.commandHandlers = commandHandlers;
         }
 
