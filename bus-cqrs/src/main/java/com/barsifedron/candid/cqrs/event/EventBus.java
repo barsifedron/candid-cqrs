@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 /**
  * A event bus, aka a dispatcher.
+ * Pretty similar to all the other ones
  */
 public interface EventBus {
 

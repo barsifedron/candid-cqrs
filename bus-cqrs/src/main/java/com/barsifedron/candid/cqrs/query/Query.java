@@ -1,7 +1,7 @@
 package com.barsifedron.candid.cqrs.query;
 
 /**
- * A really simple CQS query side
+ * A really simple query side
  */
 public interface Query<T> {
 
