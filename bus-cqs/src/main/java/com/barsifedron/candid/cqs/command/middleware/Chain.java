@@ -10,10 +10,10 @@ import java.util.List;
  */
 public class Chain {
 
-    private final CommandMiddleware middleware;
+    private final CommandBusMiddleware middleware;
     private final Chain next;
 
-    public Chain(CommandMiddleware middleware, Chain next) {
+    public Chain(CommandBusMiddleware middleware, Chain next) {
         this.middleware = middleware;
         this.next = next;
     }
@@ -30,7 +30,7 @@ public class Chain {
          * The "last" middleware called should be the dispatcher and, contrarily to the others, will not forward the command.
          * Hence the last Chain built with "null". You are better than me and can probably find a more safe and elegant way to do this.
          */
-        public Chain chainOfMiddleware(List<CommandMiddleware> middlewares) {
+        public Chain chainOfMiddleware(List<CommandBusMiddleware> middlewares) {
 
             if (middlewares.isEmpty()) {
                 throw new RuntimeException("Can not operate on an empty list of middlewares");
