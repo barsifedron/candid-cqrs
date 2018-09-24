@@ -34,12 +34,12 @@ public interface EventBus {
     /**
      * A decorator doing some Logging for us
      */
-    class LoggingMiddleware implements EventBus {
+    class WithExecutionDurationLogging implements EventBus {
 
         private final EventBus next;
-        private static final Logger LOGGER = Logger.getLogger(LoggingMiddleware.class.getName());
+        private static final Logger LOGGER = Logger.getLogger(WithExecutionDurationLogging.class.getName());
 
-        public LoggingMiddleware(EventBus next) {
+        public WithExecutionDurationLogging(EventBus next) {
             this.next = next;
         }
 

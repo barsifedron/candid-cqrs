@@ -59,16 +59,13 @@ public interface CommandBusMiddleware {
         }
 
         @Override
-        public <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> next) {
+        public <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> notUsed) {
             SimpleCommandHandler simpleCommandHandler = Optional
                     .ofNullable(command)
                     .map(c -> c.getClass())
                     .map(handlers::get)
-                    .orElseThrow(() ->
-                    {
-                        LOGGER.info("Could not find handler for command  of type :" + command.getClass().getName());
-                        return new CommandHandlerNotFoundException(command.getClass());
-                    });
+                    .orElseThrow(() -> new CommandHandlerNotFoundException(command.getClass()));
+
             return (T) simpleCommandHandler.handle(command);
         }
 
@@ -88,11 +85,11 @@ public interface CommandBusMiddleware {
      * wrapping the command execution within a database transaction, etc...
      * The sky is your limit
      */
-    class ExecutionTimeBusMiddleware implements CommandBusMiddleware {
+    class ExecutionDurationLoggingMiddleware implements CommandBusMiddleware {
 
-        private final static Logger LOGGER = Logger.getLogger(ExecutionTimeBusMiddleware.class.getName());
+        private final static Logger LOGGER = Logger.getLogger(ExecutionDurationLoggingMiddleware.class.getName());
 
-        public ExecutionTimeBusMiddleware() {
+        public ExecutionDurationLoggingMiddleware() {
         }
 
         @Override
@@ -113,11 +110,11 @@ public interface CommandBusMiddleware {
      * For the sake of providing an example of a decorating middleware:
      * A middleware filtering commands, and only processing them if they implement a certain interface.
      */
-    class FilteringBusMiddleware<V> implements CommandBusMiddleware {
+    class FilteringByCommandTypeMiddleware<V> implements CommandBusMiddleware {
 
         private final Class<? extends V> filteringClass;
 
-        public FilteringBusMiddleware(Class<? extends V> filteringClass) {
+        public FilteringByCommandTypeMiddleware(Class<? extends V> filteringClass) {
             this.filteringClass = filteringClass;
         }
 
@@ -143,7 +140,7 @@ public interface CommandBusMiddleware {
         /**
          * Feel free to add as many middleware as you want
          */
-        public ExampleFactory(ExecutionTimeBusMiddleware executionTimeMiddleware, DispatcherBusMiddleware dispatcherMiddleware) {
+        public ExampleFactory(ExecutionDurationLoggingMiddleware executionTimeMiddleware, DispatcherBusMiddleware dispatcherMiddleware) {
             this(asList(executionTimeMiddleware, dispatcherMiddleware));
         }
 
@@ -184,7 +181,7 @@ public interface CommandBusMiddleware {
         public CommandBus simpleFilteringCommandBus() {
             Chain chainOfMiddleware = new Chain.Factory().chainOfMiddleware(
                     Stream.concat(
-                            Stream.of(new FilteringBusMiddleware<>(Serializable.class)),
+                            Stream.of(new FilteringByCommandTypeMiddleware<>(Serializable.class)),
                             middlewares.stream())
                             .collect(Collectors.toList())
             );
