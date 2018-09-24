@@ -46,10 +46,7 @@ public interface CommandBusMiddleware {
                     .ofNullable(command)
                     .map(c -> c.getClass())
                     .map(handlers::get)
-                    .orElseThrow(() -> {
-                        LOGGER.info("Could not find handler for command  of type :" + command.getClass().getName());
-                        return new CommandHandlerNotFoundException(command.getClass());
-                    });
+                    .orElseThrow(() -> new CommandHandlerNotFoundException(command.getClass()));
             return handler.handle(command);
         }
 
@@ -68,12 +65,12 @@ public interface CommandBusMiddleware {
      * wrapping the command execution within a database transaction, etc...
      * The sky is your limit
      */
-    class WithExecutionTime implements CommandBusMiddleware {
+    class WithExecutionDurationLogging implements CommandBusMiddleware {
 
         private final CommandBusMiddleware next;
-        private final static Logger LOGGER = Logger.getLogger(WithExecutionTime.class.getName());
+        private final static Logger LOGGER = Logger.getLogger(WithExecutionDurationLogging.class.getName());
 
-        public WithExecutionTime(CommandBusMiddleware next) {
+        public WithExecutionDurationLogging(CommandBusMiddleware next) {
             this.next = next;
         }
 
@@ -94,12 +91,12 @@ public interface CommandBusMiddleware {
      * For the sake of providing an example of a decorating function:
      * A decorator filtering commands, and only processing them if they implement a certain interface.
      */
-    class WithFiltering<V> implements CommandBusMiddleware {
+    class WithFilteringByCommandType<V> implements CommandBusMiddleware {
 
         private final Class<? extends V> filteringClass;
         private final CommandBusMiddleware next;
 
-        public WithFiltering(Class<? extends V> filteringClass, CommandBusMiddleware next) {
+        public WithFilteringByCommandType(Class<? extends V> filteringClass, CommandBusMiddleware next) {
             this.filteringClass = filteringClass;
             this.next = next;
         }

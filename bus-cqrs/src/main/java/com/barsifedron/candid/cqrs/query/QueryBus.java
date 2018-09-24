@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -39,10 +38,7 @@ public interface QueryBus {
                     .ofNullable(query)
                     .map(q -> q.getClass())
                     .map(handlers::get)
-                    .orElseThrow(() -> {
-                        LOGGER.info("Could not find handler for query  of type :" + query.getClass().getName());
-                        return new QueryHandlerNotFoundException(query.getClass());
-                    });
+                    .orElseThrow(() -> new QueryHandlerNotFoundException(query.getClass()));
             return (T) queryHandler.handle(query);
         }
 
@@ -62,12 +58,12 @@ public interface QueryBus {
      * wrapping the query execution within a database transaction, etc...
      * The sky is your limit
      */
-    class WithExecutionTime implements QueryBus {
+    class WithExecutionDurationLogging implements QueryBus {
 
         private final QueryBus next;
-        private final static Logger LOGGER = Logger.getLogger(WithExecutionTime.class.getName());
+        private final static Logger LOGGER = Logger.getLogger(WithExecutionDurationLogging.class.getName());
 
-        public WithExecutionTime(QueryBus next) {
+        public WithExecutionDurationLogging(QueryBus next) {
             this.next = next;
         }
 
@@ -88,12 +84,12 @@ public interface QueryBus {
      * For the sake of providing an example of a decorating function:
      * A decorator filtering queries, and only processing them if they implement a certain interface.
      */
-    class WithFiltering<V> implements QueryBus {
+    class WithFilteringByCommandType<V> implements QueryBus {
 
         private final Class<? extends V> filteringClass;
         private final QueryBus next;
 
-        public WithFiltering(Class<? extends V> filteringClass, QueryBus next) {
+        public WithFilteringByCommandType(Class<? extends V> filteringClass, QueryBus next) {
             this.filteringClass = filteringClass;
             this.next = next;
         }
@@ -122,18 +118,18 @@ public interface QueryBus {
          * Keep wrapping them with other decorators to add behavior. If it becomes too much, why not look at the middleware way of doing things
          * in the middleware package?
          */
-        public QueryBus simpleQueryBus() {
-            return new WithExecutionTime(new Dispatcher(queryHandlers));
+        public QueryBus newSimpleQueryBus() {
+            return new WithExecutionDurationLogging(new Dispatcher(queryHandlers));
         }
 
         /**
          * A bus filtering (and only accepting to process) query dtos that also implement the Serializable interface.
          * Not sure why one would want to do that but it makes for an example of wrapping query buses to obtain complex behaviors.
          */
-        public QueryBus simpleFilteringQueryBus() {
-            return new WithFiltering(
+        public QueryBus newSimpleQueryBusWithFiltering() {
+            return new WithFilteringByCommandType(
                     Serializable.class,
-                    new WithExecutionTime(
+                    new WithExecutionDurationLogging(
                             new Dispatcher(queryHandlers)));
         }
 

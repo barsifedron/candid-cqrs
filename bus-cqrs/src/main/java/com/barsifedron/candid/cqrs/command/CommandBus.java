@@ -57,10 +57,10 @@ public class CommandBus {
          * If it becomes too tedious (it is not really imho), why not look at the other way to wrap comand bus middlewares
          * that is in the separate bus-cqs module. It should be easy for you to adapt.
          */
-        public CommandBus simpleCommandBus() {
+        public CommandBus newSimpleCommandBus() {
             return new CommandBus(
                     eventBus,
-                    new CommandBusMiddleware.WithExecutionTime(
+                    new CommandBusMiddleware.WithExecutionDurationLogging(
                             new CommandBusMiddleware.Dispatcher(commandHandlers)));
         }
 
@@ -68,12 +68,12 @@ public class CommandBus {
          * A bus, filtering (and only accepting to process) commands that also implement the Serializable interface.
          * Not sure why one would want to do that but it makes for an example of wrapping the command buses to obtain complex behaviors.
          */
-        public CommandBus simpleFilteringCommandBus() {
+        public CommandBus newSimpleFilteringCommandBus() {
             return new CommandBus(
                     eventBus,
-                    new CommandBusMiddleware.WithFiltering(
+                    new CommandBusMiddleware.WithFilteringByCommandType(
                             Serializable.class,
-                            new CommandBusMiddleware.WithExecutionTime(
+                            new CommandBusMiddleware.WithExecutionDurationLogging(
                                     new CommandBusMiddleware.Dispatcher(commandHandlers))));
         }
 
