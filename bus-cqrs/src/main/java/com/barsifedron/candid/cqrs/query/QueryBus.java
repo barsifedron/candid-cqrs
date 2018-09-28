@@ -1,4 +1,4 @@
-package com.barsifedron.candid.cqs.query;
+package com.barsifedron.candid.cqrs.query;
 
 
 import java.io.Serializable;
@@ -36,7 +36,7 @@ public interface QueryBus {
         public <T> T dispatch(Query<T> query) {
             QueryHandler queryHandler = Optional
                     .ofNullable(query)
-                    .map(c -> c.getClass())
+                    .map(q -> q.getClass())
                     .map(handlers::get)
                     .orElseThrow(() -> new QueryHandlerNotFoundException(query.getClass()));
             return (T) queryHandler.handle(query);
@@ -118,7 +118,7 @@ public interface QueryBus {
          * Keep wrapping them with other decorators to add behavior. If it becomes too much, why not look at the middleware way of doing things
          * in the middleware package?
          */
-        public QueryBus simpleQueryBus() {
+        public QueryBus newSimpleQueryBus() {
             return new WithExecutionDurationLogging(new Dispatcher(queryHandlers));
         }
 
@@ -126,7 +126,7 @@ public interface QueryBus {
          * A bus filtering (and only accepting to process) query dtos that also implement the Serializable interface.
          * Not sure why one would want to do that but it makes for an example of wrapping query buses to obtain complex behaviors.
          */
-        public QueryBus simpleFilteringQueryBus() {
+        public QueryBus newSimpleQueryBusWithFiltering() {
             return new WithFilteringByCommandType(
                     Serializable.class,
                     new WithExecutionDurationLogging(

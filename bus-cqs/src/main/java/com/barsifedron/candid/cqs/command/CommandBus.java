@@ -1,16 +1,10 @@
 package com.barsifedron.candid.cqs.command;
 
-import com.barsifedron.candid.cqs.command.middleware.Chain;
-import com.barsifedron.candid.cqs.command.middleware.CommandMiddleware;
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
