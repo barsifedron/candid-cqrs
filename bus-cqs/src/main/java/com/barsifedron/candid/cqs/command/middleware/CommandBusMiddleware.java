@@ -6,7 +6,6 @@ import com.barsifedron.candid.cqs.command.SimpleCommandHandler;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +29,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public interface CommandBusMiddleware {
 
-    <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> next);
+    <T> T handle(SimpleCommand<T> command, Chain next);
 
     /**
      * The middleware in charge of dispatching the command to the right Command Handler.
@@ -59,7 +58,7 @@ public interface CommandBusMiddleware {
         }
 
         @Override
-        public <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> notUsed) {
+        public <T> T handle(SimpleCommand<T> command, Chain notUsed) {
             SimpleCommandHandler simpleCommandHandler = Optional
                     .ofNullable(command)
                     .map(c -> c.getClass())
@@ -93,12 +92,12 @@ public interface CommandBusMiddleware {
         }
 
         @Override
-        public <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> next) {
+        public <T> T handle(SimpleCommand<T> command, Chain next) {
 
             LOGGER.info("Processing simple command of type :" + command.getClass().getName());
 
             long timeBefore = System.nanoTime();
-            T result = next.apply(command);
+            T result = next.handle(command);
             long timeAfter = System.nanoTime();
 
             LOGGER.info("Done processing simple command of type" + command.getClass().getName() + "Execution time was :" + ((timeAfter - timeBefore) / 1000000) + " ms");
@@ -119,9 +118,9 @@ public interface CommandBusMiddleware {
         }
 
         @Override
-        public <T> T handle(SimpleCommand<T> command, Function<SimpleCommand<T>, T> next) {
+        public <T> T handle(SimpleCommand<T> command, Chain next) {
             if (command.getClass().isInstance(filteringClass)) {
-                return next.apply(command);
+                return next.handle(command);
             }
             return null;
         }

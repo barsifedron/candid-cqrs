@@ -16,6 +16,8 @@ public interface CommandBusMiddleware {
 
     public <T> CommandResponse<T> dispatch(Command<T> command);
 
+
+
     /**
      * This is in charge of dispatching the command to the right Command Handler.
      * This will only allow for one handler per command type. As it should be.
