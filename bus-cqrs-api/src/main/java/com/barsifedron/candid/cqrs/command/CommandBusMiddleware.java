@@ -14,8 +14,11 @@ import static java.util.stream.Collectors.toMap;
  * <p>
  * This is an extremely powerful way to add common behavior to all your command processing.
  * Simple examples of middleware:
- * A middleware opening and closing transactions around your cammand handling.
- * A middleware logging the execution time taken to process your command etc...
+ * <ul>
+ * <li> A middleware opening and closing transactions around your cammand handling.</li>
+ * <li> A middleware logging the execution time taken to process your command.</li>
+ * <li> A middleware storing all the processed commands for audit later ect... </li>
+ * </ul>
  * <p>
  * To help you understand, a few examples are provided in the bus-cqrs-example project
  * <p>

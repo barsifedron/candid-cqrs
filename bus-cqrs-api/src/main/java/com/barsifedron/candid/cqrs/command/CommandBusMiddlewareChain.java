@@ -1,8 +1,6 @@
 package com.barsifedron.candid.cqrs.command;
 
 
-import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
-
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -28,7 +26,7 @@ public class CommandBusMiddlewareChain {
     }
 
 
-    <T extends CommandBusMiddleware> boolean contains(Class<T> middlewareClass) {
+    <T extends CommandBusMiddleware> boolean containsInstanceOf(Class<T> middlewareClass) {
 
         if (middleware == null) {
             return false;
@@ -39,7 +37,7 @@ public class CommandBusMiddlewareChain {
         if (nextInChain == null) {
             return false;
         }
-        return nextInChain.contains(middlewareClass);
+        return nextInChain.containsInstanceOf(middlewareClass);
 
     }
 
@@ -99,6 +97,5 @@ public class CommandBusMiddlewareChain {
 
         }
     }
-
 
 }

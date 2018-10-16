@@ -3,7 +3,6 @@ package com.barsifedron.candid.cqrs.query;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toMap;
 

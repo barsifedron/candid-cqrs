@@ -26,7 +26,7 @@ public class DomainEventBusMiddlewareChain {
     }
 
 
-    <T extends DomainEventBusMiddleware> boolean contains(Class<T> middlewareClass) {
+    <T extends DomainEventBusMiddleware> boolean containsInstanceOf(Class<T> middlewareClass) {
 
         if (middleware == null) {
             return false;
@@ -37,7 +37,7 @@ public class DomainEventBusMiddlewareChain {
         if (nextInChain == null) {
             return false;
         }
-        return nextInChain.contains(middlewareClass);
+        return nextInChain.containsInstanceOf(middlewareClass);
 
     }
 
