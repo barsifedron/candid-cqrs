@@ -1,6 +1,8 @@
 package com.barsifedron.candid.cqrs.command;
 
 
+import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -40,7 +42,7 @@ public class CommandBusMiddlewareChain {
         return nextInChain.contains(middlewareClass);
 
     }
-    
+
 
     public static class Factory {
 
@@ -51,17 +53,8 @@ public class CommandBusMiddlewareChain {
          */
         public CommandBusMiddlewareChain chainOfMiddleware(List<CommandBusMiddleware> middlewares) {
 
-            if (middlewares == null) {
-                throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
-            }
-            if (middlewares.isEmpty()) {
-                throw new RuntimeException("Can not operate on an empty list of middlewares");
-            }
-            if (middlewares.stream().anyMatch(Objects::isNull)) {
-                throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
-            }
+            validate(middlewares);
             if (middlewares.size() == 1) {
-                validateLastMiddleware(middlewares.get(0));
                 return new CommandBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
             }
             return new CommandBusMiddlewareChain(
@@ -74,6 +67,19 @@ public class CommandBusMiddlewareChain {
             return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
         }
 
+        private void validate(List<CommandBusMiddleware> middlewares) {
+            if (middlewares == null) {
+                throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
+            }
+            if (middlewares.isEmpty()) {
+                throw new RuntimeException("Can not operate on an empty list of middlewares");
+            }
+            if (middlewares.stream().anyMatch(Objects::isNull)) {
+                throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
+            }
+            CommandBusMiddleware lastMiddlewareInChain = middlewares.stream().reduce((first, last) -> last).get();
+            validateLastMiddleware(lastMiddlewareInChain);
+        }
 
         private void validateLastMiddleware(CommandBusMiddleware commandBusMiddleware) {
             if (!commandBusMiddleware.getClass().isInstance(CommandBusMiddleware.Dispatcher.class)) {

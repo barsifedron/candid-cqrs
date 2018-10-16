@@ -26,7 +26,7 @@ public class DomainEventBusMiddlewareChain {
     }
 
 
-    <T extends DomainEventBusMiddlewareChain> boolean contains(Class<T> middlewareClass) {
+    <T extends DomainEventBusMiddleware> boolean contains(Class<T> middlewareClass) {
 
         if (middleware == null) {
             return false;
@@ -50,7 +50,20 @@ public class DomainEventBusMiddlewareChain {
          * Hence the last Chain built with "null". You are better than me and can probably find a more safe and elegant way to do this.
          */
         public DomainEventBusMiddlewareChain chainOfMiddleware(List<DomainEventBusMiddleware> middlewares) {
+            validate(middlewares);
+            if (middlewares.size() == 1) {
+                return new DomainEventBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
+            }
+            return new DomainEventBusMiddlewareChain(
+                    middlewares.get(0),
+                    chainOfMiddleware(middlewares.subList(1, middlewares.size())));
+        }
 
+        public DomainEventBusMiddlewareChain chainOfMiddleware(DomainEventBusMiddleware... middlewares) {
+            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
+        }
+
+        private void validate(List<DomainEventBusMiddleware> middlewares) {
             if (middlewares == null) {
                 throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
             }
@@ -60,22 +73,12 @@ public class DomainEventBusMiddlewareChain {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
-            if (middlewares.size() == 1) {
-                validateLastMiddleware(middlewares.get(0));
-                return new DomainEventBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
-            }
-            return new DomainEventBusMiddlewareChain(
-                    middlewares.get(0),
-                    chainOfMiddleware(middlewares.subList(1, middlewares.size())));
+            DomainEventBusMiddleware lastMiddlewareInChain = middlewares.stream().reduce((first, last) -> last).get();
+            validateLastMiddleware(lastMiddlewareInChain);
         }
 
-
-        public DomainEventBusMiddlewareChain chainOfMiddleware(DomainEventBusMiddleware... middlewares) {
-            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
-        }
-
-        private void validateLastMiddleware(DomainEventBusMiddleware ev) {
-            if (!ev.getClass().isInstance(DomainEventBusMiddleware.Dispatcher.class)) {
+        private void validateLastMiddleware(DomainEventBusMiddleware middleware) {
+            if (!middleware.getClass().isInstance(DomainEventBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

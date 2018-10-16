@@ -1,6 +1,8 @@
 package com.barsifedron.candid.cqrs.query;
 
 
+import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -51,6 +53,20 @@ public class QueryBusMiddlewareChain {
          */
         public QueryBusMiddlewareChain chainOfMiddleware(List<QueryBusMiddleware> middlewares) {
 
+            validate(middlewares);
+            if (middlewares.size() == 1) {
+                return new QueryBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
+            }
+            return new QueryBusMiddlewareChain(
+                    middlewares.get(0),
+                    chainOfMiddleware(middlewares.subList(1, middlewares.size())));
+        }
+
+        public QueryBusMiddlewareChain chainOfMiddleware(QueryBusMiddleware... middlewares) {
+            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
+        }
+
+        private void validate(List<QueryBusMiddleware> middlewares) {
             if (middlewares == null) {
                 throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
             }
@@ -60,18 +76,8 @@ public class QueryBusMiddlewareChain {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
-            if (middlewares.size() == 1) {
-                validateLastMiddleware(middlewares.get(0));
-                return new QueryBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
-            }
-            return new QueryBusMiddlewareChain(
-                    middlewares.get(0),
-                    chainOfMiddleware(middlewares.subList(1, middlewares.size())));
-        }
-
-
-        public QueryBusMiddlewareChain chainOfMiddleware(QueryBusMiddleware... middlewares) {
-            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
+            QueryBusMiddleware lastMiddlewareInChain = middlewares.stream().reduce((first, last) -> last).get();
+            validateLastMiddleware(lastMiddlewareInChain);
         }
 
         private void validateLastMiddleware(QueryBusMiddleware queryBusMiddleware) {

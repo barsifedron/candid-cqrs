@@ -54,7 +54,7 @@ public interface QueryBusMiddleware {
                     .ofNullable(query)
                     .map(Query::getClass)
                     .map(handlers::get)
-                    .orElseThrow(() -> new Dispatcher.QueryHandlerNotFoundException(query.getClass()));
+                    .orElseThrow(() -> new QueryHandlerNotFoundException(query.getClass()));
             return (T) queryHandler.handle(query);
         }
 
