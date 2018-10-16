@@ -1,7 +1,8 @@
 package com.barsifedron.candid.cqrs.command;
 
-import com.barsifedron.candid.cqrs.event.Event;
+import com.barsifedron.candid.cqrs.domainevent.DomainEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,10 +17,15 @@ import java.util.List;
  * for example send an email, add a log somewhere or inform the sales team....
  */
 public class CommandResponse<K> {
-    public final K result;
-    public final List<Event> events;
 
-    public CommandResponse(K result, List<Event> events) {
+    public final K result;
+    public final List<DomainEvent> events;
+
+    public CommandResponse(K result){
+        this(result, new ArrayList<>());
+    }
+
+    public CommandResponse(K result, List<DomainEvent> events) {
         this.result = result;
         this.events = events;
     }

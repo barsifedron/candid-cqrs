@@ -34,12 +34,14 @@ public interface QueryBus {
 
         @Override
         public <T> T dispatch(Query<T> query) {
+
             QueryHandler queryHandler = Optional
                     .ofNullable(query)
-                    .map(c -> c.getClass())
+                    .map(Query::getClass)
                     .map(handlers::get)
                     .orElseThrow(() -> new QueryHandlerNotFoundException(query.getClass()));
             return (T) queryHandler.handle(query);
+
         }
 
         private class QueryHandlerNotFoundException extends RuntimeException {

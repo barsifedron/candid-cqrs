@@ -22,3 +22,9 @@ subprojects {
     }    
 }
 
+project(':bus-cqrs-example') {
+    dependencies {
+        compile project(':bus-cqrs-api')
+    }
+}
+

@@ -1,4 +1,4 @@
-package com.barsifedron.candid.cqrs.event;
+package com.barsifedron.candid.cqrs.domainevent;
 
 
 /**
@@ -7,5 +7,5 @@ package com.barsifedron.candid.cqrs.event;
  * Other devs could listen to events you publish without you knowing about it which would complicate
  * potential refactors. Better limit as much as possible.
  */
-public interface Event {
+public interface DomainEvent {
 }
