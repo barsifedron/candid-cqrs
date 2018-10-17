@@ -1,4 +1,3 @@
 rootProject.name = "candid-cqrs"
 
-include("bus-cqs", "bus-cqrs")
-
+include("bus-cqs", "bus-cqrs-api", "bus-cqrs-example")

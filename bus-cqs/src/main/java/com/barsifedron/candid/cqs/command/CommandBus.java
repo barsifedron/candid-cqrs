@@ -132,8 +132,8 @@ public interface CommandBus {
         }
 
         /**
-         * Keep wrapping them with other decorators to add behavior. If it becomes too much, why not look at the middleware way of doing things
-         * in the middleware package?
+         * Keep wrapping them with other decorators to add behavior. If it becomes too tedious (it is not IMHO), why not look at the middleware way of doing things
+         * in the bus-cqrs project?
          */
         public CommandBus simpleCommandBus() {
             return new WithExecutionTime(new Dispatcher(commandHandlers));
