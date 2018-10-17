@@ -79,7 +79,7 @@ public class QueryBusMiddlewareChain {
         }
 
         private void validateLastMiddleware(QueryBusMiddleware queryBusMiddleware) {
-            if (!queryBusMiddleware.getClass().isInstance(QueryBusMiddleware.Dispatcher.class)) {
+            if (!queryBusMiddleware.getClass().isAssignableFrom(QueryBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

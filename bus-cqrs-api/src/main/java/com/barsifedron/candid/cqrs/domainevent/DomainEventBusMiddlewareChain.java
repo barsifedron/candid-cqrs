@@ -78,7 +78,7 @@ public class DomainEventBusMiddlewareChain {
         }
 
         private void validateLastMiddleware(DomainEventBusMiddleware middleware) {
-            if (!middleware.getClass().isInstance(DomainEventBusMiddleware.Dispatcher.class)) {
+            if (!middleware.getClass().isAssignableFrom(DomainEventBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

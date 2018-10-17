@@ -80,7 +80,7 @@ public class CommandBusMiddlewareChain {
         }
 
         private void validateLastMiddleware(CommandBusMiddleware commandBusMiddleware) {
-            if (!commandBusMiddleware.getClass().isInstance(CommandBusMiddleware.Dispatcher.class)) {
+            if (!commandBusMiddleware.getClass().isAssignableFrom(CommandBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

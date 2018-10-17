@@ -56,12 +56,11 @@ public interface QueryBusMiddleware {
                     .orElseThrow(() -> new QueryHandlerNotFoundException(query.getClass()));
             return (T) queryHandler.handle(query);
         }
+    }
 
-        class QueryHandlerNotFoundException extends RuntimeException {
-            public QueryHandlerNotFoundException(Class<? extends Query> aClass) {
-                super("Could not find Query Handler for auery of type " + aClass.getName());
-            }
+    class QueryHandlerNotFoundException extends RuntimeException {
+        public QueryHandlerNotFoundException(Class<? extends Query> aClass) {
+            super("Could not find Query Handler for auery of type " + aClass.getName());
         }
-
     }
 }
