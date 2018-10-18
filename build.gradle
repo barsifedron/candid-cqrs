@@ -3,8 +3,8 @@ plugins {
 }
 
 allprojects {
-    group = 'com.barsifedron.candid.cqrs'
-    version = '1.0-SNAPSHOT'    
+    group = "com.barsifedron.candid.cqrs"
+    version = "1.0-SNAPSHOT"
 }
 
 subprojects {
@@ -18,7 +18,7 @@ subprojects {
     }
 
     dependencies {
-        testImplementation 'junit:junit:4.12'
+        testImplementation "junit:junit:4.12"
         testImplementation "org.mockito:mockito-core:2.23.0"
     }
 }
