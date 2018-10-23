@@ -37,8 +37,9 @@ public interface QueryBusMiddleware {
          * See examples in others modules.
          */
         public Dispatcher(Set<? extends QueryHandler> queryHandlers) {
-            this(queryHandlers.stream().collect(
-                    toMap(
+            this(queryHandlers
+                    .stream()
+                    .collect(toMap(
                             handler -> handler.listenTo(),
                             handler -> handler)));
         }

@@ -3,14 +3,10 @@ package com.barsifedron.candid.cqrs.command;
 import com.barsifedron.candid.cqrs.domainevent.DomainEvent;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 /**
  * Commands should not really return data. At the most, the result field should
@@ -40,4 +36,15 @@ public class CommandResponse<K> {
         this.result = result;
         this.events = events;
     }
+
+    public static CommandResponse<None> noResponse() {
+        return new CommandResponse(new None());
+    }
+
+
+    public static class None {
+        public None() {
+        }
+    }
+
 }

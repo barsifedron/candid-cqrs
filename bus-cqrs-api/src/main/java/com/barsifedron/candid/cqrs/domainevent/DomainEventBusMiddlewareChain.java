@@ -16,9 +16,9 @@ public class DomainEventBusMiddlewareChain {
     private final DomainEventBusMiddleware middleware;
     private final DomainEventBusMiddlewareChain nextInChain;
 
-    public DomainEventBusMiddlewareChain(DomainEventBusMiddleware middleware, DomainEventBusMiddlewareChain next) {
+    public DomainEventBusMiddlewareChain(DomainEventBusMiddleware middleware, DomainEventBusMiddlewareChain nextInChain) {
         this.middleware = middleware;
-        this.nextInChain = next;
+        this.nextInChain = nextInChain;
     }
 
     public void dispatch(DomainEvent event) {
@@ -44,6 +44,11 @@ public class DomainEventBusMiddlewareChain {
 
     public static class Factory {
 
+        public DomainEventBusMiddlewareChain chainOfMiddleware(DomainEventBusMiddleware... middlewares) {
+            List<DomainEventBusMiddleware> list = Stream.of(middlewares).collect(toList());
+            return chainOfMiddleware(list);
+        }
+
         /**
          * From a list of middleware, creates a Chain, wrapping them recursively into each others.
          * The "last" middleware called should be the dispatcher and, contrarily to the others, will not forward the command put finally handle it to the wanted handlers.
@@ -59,9 +64,6 @@ public class DomainEventBusMiddlewareChain {
                     chainOfMiddleware(middlewares.subList(1, middlewares.size())));
         }
 
-        public DomainEventBusMiddlewareChain chainOfMiddleware(DomainEventBusMiddleware... middlewares) {
-            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
-        }
 
         private void validate(List<DomainEventBusMiddleware> middlewares) {
             if (middlewares == null) {
@@ -73,22 +75,15 @@ public class DomainEventBusMiddlewareChain {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
-            DomainEventBusMiddleware lastMiddlewareInChain = middlewares.stream().reduce((first, last) -> last).get();
-            validateLastMiddleware(lastMiddlewareInChain);
-        }
-
-        private void validateLastMiddleware(DomainEventBusMiddleware middleware) {
-            if (!middleware.getClass().isAssignableFrom(DomainEventBusMiddleware.Dispatcher.class)) {
+            DomainEventBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
+            if (!lastMiddlewareInChain.getClass().isAssignableFrom(DomainEventBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }
 
         private DomainEventBusMiddlewareChain unreachableNextInChain() {
-            DomainEventBusMiddleware unreachableMiddleware = new DomainEventBusMiddleware() {
-                @Override
-                public void dispatch(DomainEvent event, DomainEventBusMiddlewareChain next) {
-                    throw new IllegalArgumentException("This should never be called");
-                }
+            DomainEventBusMiddleware unreachableMiddleware = (event, next) -> {
+                throw new IllegalArgumentException("This should never be called");
             };
             return new DomainEventBusMiddlewareChain(unreachableMiddleware, null);
         }

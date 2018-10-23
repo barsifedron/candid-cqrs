@@ -22,7 +22,7 @@ public class CommandBusMiddlewareChainTest {
     }
 
     @Test(expected = java.lang.RuntimeException.class)
-    public void shouldFailINoDispatcherMiddleware() {
+    public void shouldFailIfNoDispatcherMiddleware() {
         new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
     }
 
@@ -37,9 +37,11 @@ public class CommandBusMiddlewareChainTest {
 
     @Test
     public void shouldBuildAChainOfMiddleware() {
+
         CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new CommandBusMiddleware.Dispatcher(new HashSet<>()));
+
         assertTrue(chain.containsInstanceOf(FirstTestMiddleware.class));
         assertTrue(chain.containsInstanceOf(CommandBusMiddleware.Dispatcher.class));
         assertFalse(chain.containsInstanceOf(SecondTestMiddleware.class));
@@ -47,10 +49,12 @@ public class CommandBusMiddlewareChainTest {
 
     @Test(expected = CommandBusMiddleware.CommandHandlerNotFoundException.class)
     public void shouldFailToProcessCommandsWhenNoRightHandler() {
+
         CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusMiddleware.Dispatcher(new HashSet<>()));
+
         chain.dispatch(new DoNothingCommand());
     }
 
@@ -61,7 +65,7 @@ public class CommandBusMiddlewareChainTest {
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusMiddleware.Dispatcher(handlers));
-        CommandResponse<Void> response = chain.dispatch(new DoNothingCommand());
+        CommandResponse<CommandResponse.None> response = chain.dispatch(new DoNothingCommand());
     }
 
 
@@ -91,18 +95,18 @@ public class CommandBusMiddlewareChainTest {
         }
     }
 
-    static class DoNothingCommand implements Command<Void> {
+    static class DoNothingCommand implements Command<CommandResponse.None> {
 
     }
 
-    static class DoNothingCommandHandler implements CommandHandler<Void, DoNothingCommand> {
+    static class DoNothingCommandHandler implements CommandHandler<CommandResponse.None, DoNothingCommand> {
         @Override
-        public CommandResponse<Void> handle(DoNothingCommand command) {
-            return new CommandResponse<>(null);
+        public CommandResponse<CommandResponse.None> handle(DoNothingCommand command) {
+            return CommandResponse.noResponse();
         }
 
         @Override
-        public Class listenTo() {
+        public Class<DoNothingCommand> listenTo() {
             return DoNothingCommand.class;
         }
     }
