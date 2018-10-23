@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public interface CommandBusMiddleware {
 
-    <T> CommandResponse dispatch(Command<T> command, CommandBusMiddlewareChain next);
+    <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next);
 
     /**
      * This is in charge of dispatching the command to the right Command Handler.
