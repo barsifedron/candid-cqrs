@@ -7,7 +7,7 @@ package com.barsifedron.candid.cqrs.command;
  * Inspired by the second part of this great presentation:
  * https://speakerdeck.com/lilobase/cqrs-fonctionnel-event-sourcing-and-domain-driven-design-breizhcamp-2017
  *
- * Remember, you command should represent a business use case.
+ * Remember, your command should represent a business use case.
  * @param <T>
  */
 public interface Command<T> {
