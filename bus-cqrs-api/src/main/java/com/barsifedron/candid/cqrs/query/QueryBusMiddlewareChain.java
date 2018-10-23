@@ -16,9 +16,9 @@ public class QueryBusMiddlewareChain {
     private final QueryBusMiddleware middleware;
     private final QueryBusMiddlewareChain nextInChain;
 
-    public QueryBusMiddlewareChain(QueryBusMiddleware middleware, QueryBusMiddlewareChain next) {
+    public QueryBusMiddlewareChain(QueryBusMiddleware middleware, QueryBusMiddlewareChain nextInChain) {
         this.middleware = middleware;
-        this.nextInChain = next;
+        this.nextInChain = nextInChain;
     }
 
     public <T> T dispatch(Query<T> query) {
@@ -27,7 +27,6 @@ public class QueryBusMiddlewareChain {
 
 
     <T extends QueryBusMiddleware> boolean containsInstanceOf(Class<T> middlewareClass) {
-
         if (middleware == null) {
             return false;
         }
@@ -38,11 +37,15 @@ public class QueryBusMiddlewareChain {
             return false;
         }
         return nextInChain.containsInstanceOf(middlewareClass);
-
     }
 
 
     public static class Factory {
+
+        public QueryBusMiddlewareChain chainOfMiddleware(QueryBusMiddleware... middlewares) {
+            List<QueryBusMiddleware> list = Stream.of(middlewares).collect(toList());
+            return chainOfMiddleware(list);
+        }
 
         /**
          * From a list of middleware, creates a Chain, wrapping them recursively into each others.
@@ -50,7 +53,6 @@ public class QueryBusMiddlewareChain {
          * Hence the last Chain built with "null". You are better than me and can probably find a more safe and elegant way to do this.
          */
         public QueryBusMiddlewareChain chainOfMiddleware(List<QueryBusMiddleware> middlewares) {
-
             validate(middlewares);
             if (middlewares.size() == 1) {
                 return new QueryBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
@@ -58,10 +60,6 @@ public class QueryBusMiddlewareChain {
             return new QueryBusMiddlewareChain(
                     middlewares.get(0),
                     chainOfMiddleware(middlewares.subList(1, middlewares.size())));
-        }
-
-        public QueryBusMiddlewareChain chainOfMiddleware(QueryBusMiddleware... middlewares) {
-            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
         }
 
         private void validate(List<QueryBusMiddleware> middlewares) {
@@ -74,12 +72,8 @@ public class QueryBusMiddlewareChain {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
-            QueryBusMiddleware lastMiddlewareInChain = middlewares.stream().reduce((first, last) -> last).get();
-            validateLastMiddleware(lastMiddlewareInChain);
-        }
-
-        private void validateLastMiddleware(QueryBusMiddleware queryBusMiddleware) {
-            if (!queryBusMiddleware.getClass().isAssignableFrom(QueryBusMiddleware.Dispatcher.class)) {
+            QueryBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
+            if (!lastMiddlewareInChain.getClass().isAssignableFrom(QueryBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

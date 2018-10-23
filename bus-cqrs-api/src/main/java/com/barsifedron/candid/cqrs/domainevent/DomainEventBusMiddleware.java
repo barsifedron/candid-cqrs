@@ -16,6 +16,7 @@ import java.util.Set;
  * To help you understand, a few examples are provided in the bus-cqrs-example project
  * <p>
  * See an alternative way of doing this in the `bus-cqs` module.
+ *
  */
 public interface DomainEventBusMiddleware {
 

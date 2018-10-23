@@ -26,7 +26,7 @@ import static java.util.stream.Collectors.toMap;
  */
 public interface CommandBusMiddleware {
 
-    <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next);
+    <T> CommandResponse dispatch(Command<T> command, CommandBusMiddlewareChain next);
 
     /**
      * This is in charge of dispatching the command to the right Command Handler.
@@ -41,8 +41,9 @@ public interface CommandBusMiddleware {
          * Examples for this can be found in the other modules.
          */
         public Dispatcher(Set<? extends CommandHandler> commandHandlers) {
-            this(commandHandlers.stream().collect(
-                    toMap(
+            this(commandHandlers
+                    .stream()
+                    .collect(toMap(
                             handler -> handler.listenTo(),
                             handler -> handler)));
         }
@@ -54,7 +55,7 @@ public interface CommandBusMiddleware {
         @Override
         public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain unreachableChain) {
 
-            CommandHandler<T, Command<T>> handler = Optional
+            CommandHandler handler = Optional
                     .ofNullable(command)
                     .map(Command::getClass)
                     .map(commandType -> handlers.get(commandType))

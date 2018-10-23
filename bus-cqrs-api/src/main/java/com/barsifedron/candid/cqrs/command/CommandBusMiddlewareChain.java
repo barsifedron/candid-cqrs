@@ -16,9 +16,9 @@ public class CommandBusMiddlewareChain {
     private final CommandBusMiddleware middleware;
     private final CommandBusMiddlewareChain nextInChain;
 
-    public CommandBusMiddlewareChain(CommandBusMiddleware middleware, CommandBusMiddlewareChain next) {
+    public CommandBusMiddlewareChain(CommandBusMiddleware middleware, CommandBusMiddlewareChain nextInChain) {
         this.middleware = middleware;
-        this.nextInChain = next;
+        this.nextInChain = nextInChain;
     }
 
     public <T> CommandResponse<T> dispatch(Command<T> command) {
@@ -44,13 +44,17 @@ public class CommandBusMiddlewareChain {
 
     public static class Factory {
 
+        public CommandBusMiddlewareChain chainOfMiddleware(CommandBusMiddleware... middlewares) {
+            List<CommandBusMiddleware> list = Stream.of(middlewares).collect(toList());
+            return chainOfMiddleware(list);
+        }
+
         /**
          * From a list of middleware, creates a Chain, wrapping them recursively into each others.
          * The "last" middleware called should be the dispatcher and, contrarily to the others, will not forward the command put finally handle it to the wanted handlers.
          * Hence the last Chain built with "null". You are better than me and can probably find a more safe and elegant way to do this.
          */
         public CommandBusMiddlewareChain chainOfMiddleware(List<CommandBusMiddleware> middlewares) {
-
             validate(middlewares);
             if (middlewares.size() == 1) {
                 return new CommandBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
@@ -58,12 +62,8 @@ public class CommandBusMiddlewareChain {
             return new CommandBusMiddlewareChain(
                     middlewares.get(0),
                     chainOfMiddleware(middlewares.subList(1, middlewares.size())));
-
         }
 
-        public CommandBusMiddlewareChain chainOfMiddleware(CommandBusMiddleware... middlewares) {
-            return chainOfMiddleware(Stream.of(middlewares).collect(toList()));
-        }
 
         private void validate(List<CommandBusMiddleware> middlewares) {
             if (middlewares == null) {
@@ -75,18 +75,13 @@ public class CommandBusMiddlewareChain {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
-            CommandBusMiddleware lastMiddlewareInChain = middlewares.stream().reduce((first, last) -> last).get();
-            validateLastMiddleware(lastMiddlewareInChain);
-        }
-
-        private void validateLastMiddleware(CommandBusMiddleware commandBusMiddleware) {
-            if (!commandBusMiddleware.getClass().isAssignableFrom(CommandBusMiddleware.Dispatcher.class)) {
+            CommandBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
+            if (!lastMiddlewareInChain.getClass().isAssignableFrom(CommandBusMiddleware.Dispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }
 
         private CommandBusMiddlewareChain unreachableNextInChain() {
-
             CommandBusMiddleware unreachableMiddleware = new CommandBusMiddleware() {
                 @Override
                 public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next) {
@@ -94,7 +89,6 @@ public class CommandBusMiddlewareChain {
                 }
             };
             return new CommandBusMiddlewareChain(unreachableMiddleware, null);
-
         }
     }
 
