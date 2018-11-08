@@ -8,6 +8,6 @@ public interface DomainEventHandler<K extends DomainEvent> {
 
     void handle(K event);
 
-    Class<K> listenTo();
+    Class listenTo();
 
 }

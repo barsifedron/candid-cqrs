@@ -65,7 +65,7 @@ public class CommandBusMiddlewareChainTest {
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusMiddleware.Dispatcher(handlers));
-        CommandResponse<CommandResponse.None> response = chain.dispatch(new DoNothingCommand());
+        CommandResponse<NoResult> response = chain.dispatch(new DoNothingCommand());
     }
 
 
@@ -95,14 +95,14 @@ public class CommandBusMiddlewareChainTest {
         }
     }
 
-    static class DoNothingCommand implements Command<CommandResponse.None> {
+    static class DoNothingCommand implements Command<NoResult> {
 
     }
 
-    static class DoNothingCommandHandler implements CommandHandler<CommandResponse.None, DoNothingCommand> {
+    static class DoNothingCommandHandler implements CommandHandler<NoResult, DoNothingCommand> {
         @Override
-        public CommandResponse<CommandResponse.None> handle(DoNothingCommand command) {
-            return CommandResponse.noResponse();
+        public CommandResponse<NoResult> handle(DoNothingCommand command) {
+            return CommandResponse.withoutResult();
         }
 
         @Override

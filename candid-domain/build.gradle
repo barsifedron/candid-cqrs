@@ -1,0 +1,13 @@
+dependencies {
+
+    implementation project(":bus-cqrs-api")
+    implementation "javax.inject:javax.inject:1"
+    implementation 'org.apache.commons:commons-lang3:3.5'
+
+    // validation
+    implementation "javax.validation:validation-api:2.0.0.Final"
+    implementation "org.hibernate.validator:hibernate-validator:6.0.2.Final"
+    implementation "org.hibernate.validator:hibernate-validator-annotation-processor:6.0.2.Final"
+    implementation "javax.el:javax.el-api:3.0.0"
+    implementation "org.glassfish.web:javax.el:2.2.6"
+}

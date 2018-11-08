@@ -37,14 +37,9 @@ public class CommandResponse<K> {
         this.events = events;
     }
 
-    public static CommandResponse<None> noResponse() {
-        return new CommandResponse(new None());
+    public static CommandResponse<NoResult> withoutResult(DomainEvent... events) {
+        return new CommandResponse(new NoResult(), events);
     }
 
-
-    public static class None {
-        public None() {
-        }
-    }
 
 }
