@@ -2,6 +2,7 @@ package com.barsifedron.candid.cqrs.query;
 
 
 import com.barsifedron.candid.cqrs.query.middleware.ExecutionDurationLoggingQueryBusMiddleware;
+import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
 import com.barsifedron.candid.cqrs.query.middleware.WithFilteringQueryBusMiddleware;
 
 import java.io.Serializable;
@@ -25,7 +26,7 @@ public class QueryBusFactory {
     public QueryBus newSimpleQueryBus() {
         QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ExecutionDurationLoggingQueryBusMiddleware(),
-                new QueryBusMiddleware.Dispatcher(queryHandlers)
+                new QueryBusDispatcher(queryHandlers)
         );
         return chain::dispatch;
     }
@@ -38,7 +39,7 @@ public class QueryBusFactory {
         QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ExecutionDurationLoggingQueryBusMiddleware(),
                 new WithFilteringQueryBusMiddleware(Serializable.class),
-                new QueryBusMiddleware.Dispatcher(queryHandlers)
+                new QueryBusDispatcher(queryHandlers)
         );
         return chain::dispatch;
     }

@@ -1,6 +1,8 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
 
+import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -11,7 +13,7 @@ import static java.util.stream.Collectors.toList;
  * Chain of responsibility pattern, aka, infinite interceptors... Will allow us
  * to dynamically create chains of middleware.
  */
-public class DomainEventBusMiddlewareChain {
+public class DomainEventBusMiddlewareChain implements DomainEventBus {
 
     private final DomainEventBusMiddleware middleware;
     private final DomainEventBusMiddlewareChain nextInChain;
@@ -21,6 +23,7 @@ public class DomainEventBusMiddlewareChain {
         this.nextInChain = nextInChain;
     }
 
+    @Override
     public void dispatch(DomainEvent event) {
         middleware.dispatch(event, nextInChain);
     }
@@ -51,7 +54,8 @@ public class DomainEventBusMiddlewareChain {
 
         /**
          * From a list of middleware, creates a Chain, wrapping them recursively into each others.
-         * The "last" middleware called should be the dispatcher and, contrarily to the others, will not forward the command put finally handle it to the wanted handlers.
+         * The "last" middleware called should be the dispatcher and, contrarily to the others,
+         * will not forward the command but finally hand it to the wanted handlers.
          * Hence the last Chain built with "null". You are better than me and can probably find a more safe and elegant way to do this.
          */
         public DomainEventBusMiddlewareChain chainOfMiddleware(List<DomainEventBusMiddleware> middlewares) {
@@ -76,7 +80,7 @@ public class DomainEventBusMiddlewareChain {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
             DomainEventBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
-            if (!lastMiddlewareInChain.getClass().isAssignableFrom(DomainEventBusMiddleware.Dispatcher.class)) {
+            if (!lastMiddlewareInChain.getClass().isAssignableFrom(DomainEventBusDispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

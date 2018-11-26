@@ -58,8 +58,8 @@ public class RegisterNewMemberCommandHandlerTest {
                 "Jack",
                 "Malone"));
 
-        Assert.assertEquals(1, response.events.size());
-        Assert.assertEquals(NewMemberRegistered.class, response.events.get(0).getClass());
+        Assert.assertEquals(1, response.domainEvents.size());
+        Assert.assertEquals(NewMemberRegistered.class, response.domainEvents.get(0).getClass());
     }
 
     @Test

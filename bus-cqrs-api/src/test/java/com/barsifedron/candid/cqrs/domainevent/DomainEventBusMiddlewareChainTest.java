@@ -1,5 +1,6 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
+import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class DomainEventBusMiddlewareChainTest {
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
         new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
-                new DomainEventBusMiddleware.Dispatcher(new HashSet<>()),
+                new DomainEventBusDispatcher(new HashSet<>()),
                 new SecondTestMiddleware()
         );
     }
@@ -42,16 +43,16 @@ public class DomainEventBusMiddlewareChainTest {
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 null,
-                new DomainEventBusMiddleware.Dispatcher(new HashSet<>()));
+                new DomainEventBusDispatcher(new HashSet<>()));
     }
 
     @Test
     public void shouldBuildAChainOfMiddleware() {
         DomainEventBusMiddlewareChain chain = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
-                new DomainEventBusMiddleware.Dispatcher(new HashSet<>()));
+                new DomainEventBusDispatcher(new HashSet<>()));
         assertTrue(chain.containsInstanceOf(FirstTestMiddleware.class));
-        assertTrue(chain.containsInstanceOf(DomainEventBusMiddleware.Dispatcher.class));
+        assertTrue(chain.containsInstanceOf(DomainEventBusDispatcher.class));
         assertFalse(chain.containsInstanceOf(SecondTestMiddleware.class));
     }
 
@@ -62,7 +63,7 @@ public class DomainEventBusMiddlewareChainTest {
         DomainEventBusMiddlewareChain chain = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
-                new DomainEventBusMiddleware.Dispatcher(handlers));
+                new DomainEventBusDispatcher(handlers));
         chain.dispatch(new NothingToDoEvent());
     }
 
@@ -72,7 +73,7 @@ public class DomainEventBusMiddlewareChainTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public void dispatch(DomainEvent domainEvent, DomainEventBusMiddlewareChain next) {
+        public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
             LOGGER.info("FirstTestMiddleware : dispatching");
             next.dispatch(domainEvent);
             LOGGER.info("FirstTestMiddleware : dispatched");
@@ -84,7 +85,7 @@ public class DomainEventBusMiddlewareChainTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public void dispatch(DomainEvent event, DomainEventBusMiddlewareChain next) {
+        public void dispatch(DomainEvent event, DomainEventBus next) {
             LOGGER.info("SecondTestMiddleware : dispatching");
             next.dispatch(event);
             LOGGER.info("SecondTestMiddleware : dispatched");

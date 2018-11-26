@@ -1,9 +1,5 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
-
-import java.util.Set;
-
-
 /**
  * The middleware intercept your event on its way to or back from the event listeners.
  * Think of this as a chain of decorators, each one adding its own behaviour to the process.
@@ -16,36 +12,9 @@ import java.util.Set;
  * To help you understand, a few examples are provided in the bus-cqrs-example project
  * <p>
  * See an alternative way of doing this in the `bus-cqs` module.
- *
  */
 public interface DomainEventBusMiddleware {
 
-    void dispatch(DomainEvent event, DomainEventBusMiddlewareChain next);
+    void dispatch(DomainEvent event, DomainEventBus next);
 
-    /**
-     * This is in charge of dispatching the query to the right Query Handler.
-     * This will only allow for one handler per query type. As it should be.
-     */
-    class Dispatcher implements DomainEventBusMiddleware {
-
-        private final Set<? extends DomainEventHandler> handlers;
-
-        /**
-         * Your set of handlers should be given to you by your depedency injection tool.
-         * See examples in others modules.
-         */
-        public Dispatcher(Set<? extends DomainEventHandler> handlers) {
-            this.handlers = handlers;
-        }
-
-
-        @Override
-        public void dispatch(DomainEvent event, DomainEventBusMiddlewareChain notUsed) {
-            handlers
-                    .stream()
-                    .filter(handler -> handler.listenTo() == event.getClass())
-                    .forEach(handler -> handler.handle(event));
-        }
-
-    }
 }

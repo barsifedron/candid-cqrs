@@ -55,8 +55,8 @@ public class RenameItemCommandHandlerTest {
                 itemId.id(),
                 "WarHammer"));
 
-        assertFalse(response.events.isEmpty());
-        DomainEvent publishedEvent = response.events.get(0);
+        assertFalse(response.domainEvents.isEmpty());
+        DomainEvent publishedEvent = response.domainEvents.get(0);
         assertTrue(publishedEvent.getClass().isAssignableFrom(ItemRenamed.class));
         assertEquals(new ItemName("WarHammer"), ((ItemRenamed) publishedEvent).itemNewName);
         assertEquals(itemId, ((ItemRenamed) publishedEvent).itemId);

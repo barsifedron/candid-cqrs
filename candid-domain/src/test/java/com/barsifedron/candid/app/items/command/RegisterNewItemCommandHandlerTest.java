@@ -39,7 +39,7 @@ public class RegisterNewItemCommandHandlerTest {
         RegisterNewItemCommandHandler handler = new RegisterNewItemCommandHandler(repository);
 
         CommandResponse<ItemId> response = handler.handle(new RegisterNewItem("Hammer"));
-        DomainEvent domainEvent = response.events.get(0);
+        DomainEvent domainEvent = response.domainEvents.get(0);
 
         assertTrue(domainEvent.getClass().isAssignableFrom(ItemRegistered.class));
         assertEquals(new ItemName("Hammer"), ((ItemRegistered) domainEvent).name);

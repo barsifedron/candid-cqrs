@@ -1,4 +1,9 @@
-package com.barsifedron.candid.cqrs.command;
+package com.barsifedron.candid.cqrs.command.middleware;
+
+import com.barsifedron.candid.cqrs.command.Command;
+import com.barsifedron.candid.cqrs.command.CommandBus;
+import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
+import com.barsifedron.candid.cqrs.command.CommandResponse;
 
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
@@ -24,7 +29,7 @@ public class ValidatingCommandBusMiddleware implements CommandBusMiddleware {
     }
 
     @Override
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
         Set<ConstraintViolation<Command>> violations = validator.validate(command);
         if (!violations.isEmpty()) {
             throw new IllegalCommandException(violations);

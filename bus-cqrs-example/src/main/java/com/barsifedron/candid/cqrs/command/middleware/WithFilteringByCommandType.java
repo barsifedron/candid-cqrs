@@ -1,9 +1,6 @@
 package com.barsifedron.candid.cqrs.command.middleware;
 
-import com.barsifedron.candid.cqrs.command.Command;
-import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
-import com.barsifedron.candid.cqrs.command.CommandBusMiddlewareChain;
-import com.barsifedron.candid.cqrs.command.CommandResponse;
+import com.barsifedron.candid.cqrs.command.*;
 
 /**
  * For the sake of providing an example of a decorating function:
@@ -17,7 +14,7 @@ public class WithFilteringByCommandType<V> implements CommandBusMiddleware {
         this.filteringClass = filteringClass;
     }
 
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
         boolean shouldProcessCommand = command.getClass().isInstance(filteringClass);
         return shouldProcessCommand
                 ? next.dispatch(command)

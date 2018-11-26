@@ -1,6 +1,9 @@
 package com.barsifedron.candid.cqrs.command;
 
+import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
+import com.barsifedron.candid.cqrs.command.middleware.DomainEventsDispatcher;
 import com.barsifedron.candid.cqrs.domainevent.*;
+import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -23,16 +26,16 @@ public class CommandBusMiddlewareTest {
         DomainEventBus domainEventBus = Mockito.mock(DomainEventBus.class);
         Set<CommandHandler> handlers = Stream.of(new ProducesThreeEventsCommandHandler()).collect(toSet());
 
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
-                new CommandBusMiddleware.EventBusDispatcherMiddleware(domainEventBus),
-                new CommandBusMiddleware.Dispatcher(handlers));
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+                new DomainEventsDispatcher(domainEventBus),
+                new CommandBusDispatcher(handlers));
         CommandBus commandBus = chain::dispatch;
 
         // when
         CommandResponse<Void> response = commandBus.dispatch(new CommandThatProducesThreeEvents());
 
         // then
-        for (DomainEvent domainEvent : response.events) {
+        for (DomainEvent domainEvent : response.domainEvents) {
             Mockito
                     .verify(domainEventBus, times(1))
                     .dispatch(domainEvent);
@@ -59,14 +62,14 @@ public class CommandBusMiddlewareTest {
         Set<DomainEventHandler> eventHandlers = Stream.of(firstEventHandler, secondEventHandler, thirdEventHandler).collect(toSet());
         DomainEventBus eventBus = event -> new DomainEventBusMiddlewareChain
                 .Factory()
-                .chainOfMiddleware(new DomainEventBusMiddleware.Dispatcher(eventHandlers))
+                .chainOfMiddleware(new DomainEventBusDispatcher(eventHandlers))
                 .dispatch(event);
 
         // Command bus
         Set<CommandHandler> handlers = Stream.of(new ProducesThreeEventsCommandHandler()).collect(toSet());
-        CommandBusMiddlewareChain chainOfCommandMiddleware = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
-                new CommandBusMiddleware.EventBusDispatcherMiddleware(eventBus),
-                new CommandBusMiddleware.Dispatcher(handlers));
+        CommandBusMiddlewareChain chainOfCommandMiddleware = new CommandBusMiddlewareChain.Factory().chain(
+                new DomainEventsDispatcher(eventBus),
+                new CommandBusDispatcher(handlers));
         CommandBus commandBus = chainOfCommandMiddleware::dispatch;
 
         // when

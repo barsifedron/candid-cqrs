@@ -1,5 +1,7 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
+import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
+
 import java.util.Set;
 
 public class EventBusFactory {
@@ -15,7 +17,7 @@ public class EventBusFactory {
 
     public DomainEventBus build() {
         DomainEventBusMiddlewareChain chain = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
-                new DomainEventBusMiddleware.Dispatcher(handlers)
+                new DomainEventBusDispatcher(handlers)
         );
         return chain::dispatch;
     }
