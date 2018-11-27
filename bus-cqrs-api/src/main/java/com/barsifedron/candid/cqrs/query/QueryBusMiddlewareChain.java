@@ -1,6 +1,8 @@
 package com.barsifedron.candid.cqrs.query;
 
 
+import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -11,7 +13,7 @@ import static java.util.stream.Collectors.toList;
  * Chain of responsibility pattern, aka, infinite interceptors... Will allow us
  * to dynamically create chains of middleware.
  */
-public class QueryBusMiddlewareChain {
+public class QueryBusMiddlewareChain implements QueryBus{
 
     private final QueryBusMiddleware middleware;
     private final QueryBusMiddlewareChain nextInChain;
@@ -21,6 +23,7 @@ public class QueryBusMiddlewareChain {
         this.nextInChain = nextInChain;
     }
 
+    @Override
     public <T> T dispatch(Query<T> query) {
         return middleware.dispatch(query, nextInChain);
     }
@@ -49,7 +52,8 @@ public class QueryBusMiddlewareChain {
 
         /**
          * From a list of middleware, creates a Chain, wrapping them recursively into each others.
-         * The "last" middleware called should be the dispatcher and, contrarily to the others, will not forward the command put finally handle it to the wanted handlers.
+         * The "last" middleware called should be the dispatcher and, contrarily to the others,
+         * will not forward the command put finally handle it to the wanted handlers.
          * Hence the last Chain built with "null". You are better than me and can probably find a more safe and elegant way to do this.
          */
         public QueryBusMiddlewareChain chainOfMiddleware(List<QueryBusMiddleware> middlewares) {
@@ -73,7 +77,7 @@ public class QueryBusMiddlewareChain {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
             QueryBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
-            if (!lastMiddlewareInChain.getClass().isAssignableFrom(QueryBusMiddleware.Dispatcher.class)) {
+            if (!lastMiddlewareInChain.getClass().isAssignableFrom(QueryBusDispatcher.class)) {
                 throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }

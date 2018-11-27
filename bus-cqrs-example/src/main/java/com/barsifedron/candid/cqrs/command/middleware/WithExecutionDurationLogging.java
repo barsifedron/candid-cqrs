@@ -1,9 +1,6 @@
 package com.barsifedron.candid.cqrs.command.middleware;
 
-import com.barsifedron.candid.cqrs.command.Command;
-import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
-import com.barsifedron.candid.cqrs.command.CommandBusMiddlewareChain;
-import com.barsifedron.candid.cqrs.command.CommandResponse;
+import com.barsifedron.candid.cqrs.command.*;
 
 import java.util.logging.Logger;
 
@@ -20,7 +17,7 @@ public class WithExecutionDurationLogging implements CommandBusMiddleware {
 
     private final static Logger LOGGER = Logger.getLogger(WithExecutionDurationLogging.class.getName());
 
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
 
         LOGGER.info("Processing simple command of type :" + command.getClass().getName());
 

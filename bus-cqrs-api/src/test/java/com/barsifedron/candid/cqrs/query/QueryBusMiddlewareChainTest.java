@@ -1,5 +1,6 @@
 package com.barsifedron.candid.cqrs.query;
 
+import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class QueryBusMiddlewareChainTest {
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
         new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
-                new QueryBusMiddleware.Dispatcher(new HashSet<>()),
+                new QueryBusDispatcher(new HashSet<>()),
                 new SecondTestMiddleware()
         );
     }
@@ -42,25 +43,25 @@ public class QueryBusMiddlewareChainTest {
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 null,
-                new QueryBusMiddleware.Dispatcher(new HashSet<>()));
+                new QueryBusDispatcher(new HashSet<>()));
     }
 
     @Test
     public void shouldBuildAChainOfMiddleware() {
         QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
-                new QueryBusMiddleware.Dispatcher(new HashSet<>()));
+                new QueryBusDispatcher(new HashSet<>()));
         assertTrue(chain.containsInstanceOf(FirstTestMiddleware.class));
-        assertTrue(chain.containsInstanceOf(QueryBusMiddleware.Dispatcher.class));
+        assertTrue(chain.containsInstanceOf(QueryBusDispatcher.class));
         assertFalse(chain.containsInstanceOf(SecondTestMiddleware.class));
     }
 
-    @Test(expected = QueryBusMiddleware.Dispatcher.QueryHandlerNotFoundException.class)
+    @Test(expected = QueryBusDispatcher.QueryHandlerNotFoundException.class)
     public void shouldFailToProcessQuerysWhenNoRightHandler() {
         QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
-                new QueryBusMiddleware.Dispatcher(new HashSet<>()));
+                new QueryBusDispatcher(new HashSet<>()));
         chain.dispatch(new ReturnTwoQuery());
     }
 
@@ -70,7 +71,7 @@ public class QueryBusMiddlewareChainTest {
         QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
-                new QueryBusMiddleware.Dispatcher(handlers));
+                new QueryBusDispatcher(handlers));
         Integer response = chain.dispatch(new ReturnTwoQuery());
         assertEquals(Integer.valueOf(2), response);
     }

@@ -22,29 +22,24 @@ import static java.util.stream.Collectors.toList;
 public class CommandResponse<K> {
 
     public final K result;
-    public final List<DomainEvent> events;
+    public final List<DomainEvent> domainEvents;
 
     public CommandResponse(K result) {
         this(result, new ArrayList<>());
     }
 
-    public CommandResponse(K result, DomainEvent... events) {
-        this(result, Stream.of(events).collect(toList()));
+    public CommandResponse(K result, DomainEvent... domainEvents) {
+        this(result, Stream.of(domainEvents).collect(toList()));
     }
 
-    public CommandResponse(K result, List<DomainEvent> events) {
+    public CommandResponse(K result, List<DomainEvent> domainEvents) {
         this.result = result;
-        this.events = events;
+        this.domainEvents = domainEvents;
     }
 
-    public static CommandResponse<None> noResponse() {
-        return new CommandResponse(new None());
+    public static CommandResponse withoutResult(DomainEvent... events) {
+        return new CommandResponse(new NoResult(), events);
     }
 
-
-    public static class None {
-        public None() {
-        }
-    }
 
 }

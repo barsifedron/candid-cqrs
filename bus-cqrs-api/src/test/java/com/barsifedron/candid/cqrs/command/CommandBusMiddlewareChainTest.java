@@ -1,5 +1,6 @@
 package com.barsifedron.candid.cqrs.command;
 
+import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -18,19 +19,19 @@ public class CommandBusMiddlewareChainTest {
 
     @Test(expected = java.lang.RuntimeException.class)
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new ArrayList<>());
+        new CommandBusMiddlewareChain.Factory().chain(new ArrayList<>());
     }
 
     @Test(expected = java.lang.RuntimeException.class)
     public void shouldFailIfNoDispatcherMiddleware() {
-        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
+        new CommandBusMiddlewareChain.Factory().chain(new FirstTestMiddleware());
     }
 
     @Test(expected = java.lang.RuntimeException.class)
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        new CommandBusMiddlewareChain.Factory().chain(
                 new FirstTestMiddleware(),
-                new CommandBusMiddleware.Dispatcher(new HashSet<>()),
+                new CommandBusDispatcher(new HashSet<>()),
                 new SecondTestMiddleware()
         );
     }
@@ -38,22 +39,22 @@ public class CommandBusMiddlewareChainTest {
     @Test
     public void shouldBuildAChainOfMiddleware() {
 
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
                 new FirstTestMiddleware(),
-                new CommandBusMiddleware.Dispatcher(new HashSet<>()));
+                new CommandBusDispatcher(new HashSet<>()));
 
-        assertTrue(chain.containsInstanceOf(FirstTestMiddleware.class));
-        assertTrue(chain.containsInstanceOf(CommandBusMiddleware.Dispatcher.class));
-        assertFalse(chain.containsInstanceOf(SecondTestMiddleware.class));
+        assertTrue(chain.usesMiddlewareInstanceOf(FirstTestMiddleware.class));
+        assertTrue(chain.usesMiddlewareInstanceOf(CommandBusDispatcher.class));
+        assertFalse(chain.usesMiddlewareInstanceOf(SecondTestMiddleware.class));
     }
 
-    @Test(expected = CommandBusMiddleware.CommandHandlerNotFoundException.class)
+    @Test(expected = CommandBusDispatcher.CommandHandlerNotFoundException.class)
     public void shouldFailToProcessCommandsWhenNoRightHandler() {
 
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
-                new CommandBusMiddleware.Dispatcher(new HashSet<>()));
+                new CommandBusDispatcher(new HashSet<>()));
 
         chain.dispatch(new DoNothingCommand());
     }
@@ -61,11 +62,11 @@ public class CommandBusMiddlewareChainTest {
     @Test
     public void shouldProcessCommandsWhenRightHandler() {
         Set<DoNothingCommandHandler> handlers = Stream.of(new DoNothingCommandHandler()).collect(toSet());
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
-                new CommandBusMiddleware.Dispatcher(handlers));
-        CommandResponse<CommandResponse.None> response = chain.dispatch(new DoNothingCommand());
+                new CommandBusDispatcher(handlers));
+        CommandResponse<NoResult> response = chain.dispatch(new DoNothingCommand());
     }
 
 
@@ -74,7 +75,7 @@ public class CommandBusMiddlewareChainTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next) {
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
             LOGGER.info("FirstTestMiddleware : dispatching");
             CommandResponse<T> response = next.dispatch(command);
             LOGGER.info("FirstTestMiddleware : dispatched");
@@ -87,7 +88,7 @@ public class CommandBusMiddlewareChainTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBusMiddlewareChain next) {
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
             LOGGER.info("SecondTestMiddleware : dispatching");
             CommandResponse<T> response = next.dispatch(command);
             LOGGER.info("SecondTestMiddleware : dispatched");
@@ -95,14 +96,14 @@ public class CommandBusMiddlewareChainTest {
         }
     }
 
-    static class DoNothingCommand implements Command<CommandResponse.None> {
+    static class DoNothingCommand implements Command<NoResult> {
 
     }
 
-    static class DoNothingCommandHandler implements CommandHandler<CommandResponse.None, DoNothingCommand> {
+    static class DoNothingCommandHandler implements CommandHandler<NoResult, DoNothingCommand> {
         @Override
-        public CommandResponse<CommandResponse.None> handle(DoNothingCommand command) {
-            return CommandResponse.noResponse();
+        public CommandResponse<NoResult> handle(DoNothingCommand command) {
+            return CommandResponse.withoutResult();
         }
 
         @Override
