@@ -37,7 +37,7 @@ public class ReturnItemCommandHandler implements CommandHandler<NoResult, Return
         // Good news : you have nothing to do but to add the domain events to the returned response. The command bus automatically dispatches them to their rightful handlers.
         // Note : we can generate more than one domain event. But also no event at all.
         DomainEvent itemReturned = new ItemReturned();
-        return CommandResponse.withoutResult(itemReturned);
+        return CommandResponse.empty().withAddedDomainEvents(itemReturned);
     }
 
     @Override

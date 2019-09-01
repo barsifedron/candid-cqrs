@@ -21,7 +21,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfEmailIsBlank() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         CommandBus bus = chain::dispatch;
@@ -31,7 +31,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfEmailIsNotValid() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         CommandBus bus = chain::dispatch;
@@ -41,7 +41,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsNull() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         CommandBus bus = chain::dispatch;
@@ -51,7 +51,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsBlank() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         CommandBus bus = chain::dispatch;
@@ -61,7 +61,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test
     public void shouldBeHappyWhenTheCommandIsValid() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(Stream.of(new TestCommandHandler()).collect(Collectors.toSet())));
         CommandBus bus = chain::dispatch;
@@ -88,7 +88,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
         @Override
         public CommandResponse<NoResult> handle(TestCommand command) {
-            return CommandResponse.withoutResult();
+            return CommandResponse.empty();
         }
 
         @Override

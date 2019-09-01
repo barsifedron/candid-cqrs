@@ -37,9 +37,25 @@ public class CommandResponse<K> {
         this.domainEvents = domainEvents;
     }
 
-    public static CommandResponse withoutResult(DomainEvent... events) {
+    public <T> CommandResponse<T> withResult(T result) {
+        return new CommandResponse<>(result, domainEvents);
+    }
+
+    /**
+     * Does not override the list but add to the existing events.
+     */
+    public CommandResponse<K> withAddedDomainEvents(DomainEvent... events) {
+        List<DomainEvent> newDomainEvents = domainEvents.stream().collect(toList());
+        Stream.of(events).forEach(newDomainEvents::add);
+        return new CommandResponse(result, newDomainEvents);
+    }
+
+    public static CommandResponse<NoResult> withoutResults(DomainEvent... events) {
         return new CommandResponse(new NoResult(), events);
     }
 
+    public static CommandResponse<NoResult> empty() {
+        return new CommandResponse(new NoResult(), new ArrayList<>());
+    }
 
 }

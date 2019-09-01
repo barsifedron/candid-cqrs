@@ -1,33 +1,33 @@
 package com.barsifedron.candid.cqrs.query;
 
+
 import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class QueryBusMiddlewareChainTest {
 
     public QueryBusMiddlewareChainTest() {
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailToConstructEmptyMiddlewareChain() {
         new QueryBusMiddlewareChain.Factory().chainOfMiddleware(new ArrayList<>());
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailINoDispatcherMiddleware() {
         new QueryBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
         new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
@@ -37,7 +37,7 @@ public class QueryBusMiddlewareChainTest {
     }
 
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
         new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
@@ -67,11 +67,10 @@ public class QueryBusMiddlewareChainTest {
 
     @Test
     public void shouldProcessQuerysWhenRightHandler() {
-        Set<ReturnTwoQueryHandler> handlers = Stream.of(new ReturnTwoQueryHandler()).collect(toSet());
         QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
-                new QueryBusDispatcher(handlers));
+                new QueryBusDispatcher(new ReturnTwoQueryHandler()));
         Integer response = chain.dispatch(new ReturnTwoQuery());
         assertEquals(Integer.valueOf(2), response);
     }
@@ -82,7 +81,7 @@ public class QueryBusMiddlewareChainTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public <T> T dispatch(Query<T> query, QueryBusMiddlewareChain next) {
+        public <T> T dispatch(Query<T> query, QueryBus next) {
             LOGGER.info("FirstTestMiddleware : dispatching");
             T response = next.dispatch(query);
             LOGGER.info("FirstTestMiddleware : dispatched");
@@ -95,7 +94,7 @@ public class QueryBusMiddlewareChainTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public <T> T dispatch(Query<T> query, QueryBusMiddlewareChain next) {
+        public <T> T dispatch(Query<T> query, QueryBus next) {
             LOGGER.info("SecondTestMiddleware : dispatching");
             T response = next.dispatch(query);
             LOGGER.info("SecondTestMiddleware : dispatched");

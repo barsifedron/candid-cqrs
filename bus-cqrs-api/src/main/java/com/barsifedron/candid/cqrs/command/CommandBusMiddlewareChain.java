@@ -3,8 +3,10 @@ package com.barsifedron.candid.cqrs.command;
 
 import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -25,7 +27,6 @@ import static java.util.stream.Collectors.toList;
  * <li> A middleware storing all the processed commands for audit later ect... </li>
  * </ul>
  * <p>
- * To help you understand, a few examples are provided in the bus-cqrs-example project
  * We chose this construct as it will make the creation of the command bus more clear and cleaner.
  * But you can use a normal CommandBus decorator if you prefer. Both are valid choices.
  * <p>
@@ -36,7 +37,7 @@ public class CommandBusMiddlewareChain implements CommandBus {
     private final CommandBusMiddleware middleware;
     private final CommandBusMiddlewareChain nextInChain;
 
-    public CommandBusMiddlewareChain(CommandBusMiddleware middleware, CommandBusMiddlewareChain nextInChain) {
+    private CommandBusMiddlewareChain(CommandBusMiddleware middleware, CommandBusMiddlewareChain nextInChain) {
         this.middleware = middleware;
         this.nextInChain = nextInChain;
     }
@@ -64,12 +65,30 @@ public class CommandBusMiddlewareChain implements CommandBus {
         return nextInChain.usesMiddlewareInstanceOf(middlewareClass);
     }
 
+    @Override
+    public String toString() {
+        return middlewareList().stream().collect(Collectors.joining(
+                "\n\t",
+                "\nCommand bus middleware chain :\n[\n\t",
+                "\n]"
+        ));
+    }
+
+    private List<String> middlewareList() {
+        if (middleware.getClass().isAssignableFrom(CommandBusDispatcher.class)) {
+            return Stream.of(middleware.getClass().getName()).collect(toList());
+        }
+        List<String> middlewareNames = new ArrayList();
+        middlewareNames.add(middleware.getClass().getName());
+        middlewareNames.addAll(nextInChain.middlewareList());
+        return middlewareNames;
+    }
 
     public static class Factory {
 
-        public CommandBusMiddlewareChain chain(CommandBusMiddleware... middlewares) {
+        public CommandBusMiddlewareChain chainOfMiddleware(CommandBusMiddleware... middlewares) {
             List<CommandBusMiddleware> list = Stream.of(middlewares).collect(toList());
-            return chain(list);
+            return chainOfMiddleware(list);
         }
 
         /**
@@ -78,14 +97,14 @@ public class CommandBusMiddlewareChain implements CommandBus {
          * will not forward the command but finally handle it to the command handlers.
          * Hence the last Chain built with "null". You are better than me and can probably find a more elegant way to do this.
          */
-        public CommandBusMiddlewareChain chain(List<CommandBusMiddleware> middlewares) {
+        public CommandBusMiddlewareChain chainOfMiddleware(List<CommandBusMiddleware> middlewares) {
             validate(middlewares);
             if (middlewares.size() == 1) {
                 return new CommandBusMiddlewareChain(middlewares.get(0), unreachableNextInChain());
             }
             return new CommandBusMiddlewareChain(
                     middlewares.get(0),
-                    chain(middlewares.subList(1, middlewares.size())));
+                    chainOfMiddleware(middlewares.subList(1, middlewares.size())));
         }
 
         private void validate(List<CommandBusMiddleware> middlewares) {
@@ -100,7 +119,8 @@ public class CommandBusMiddlewareChain implements CommandBus {
             }
             CommandBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
             if (!lastMiddlewareInChain.getClass().isAssignableFrom(CommandBusDispatcher.class)) {
-                throw new RuntimeException("The last middleware of the chain must always be the one dispatching to handlers.");
+                throw new RuntimeException(
+                        "The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }
 

@@ -1,6 +1,7 @@
 package com.barsifedron.candid.cqrs.query.middleware;
 
 import com.barsifedron.candid.cqrs.query.Query;
+import com.barsifedron.candid.cqrs.query.QueryBus;
 import com.barsifedron.candid.cqrs.query.QueryBusMiddleware;
 import com.barsifedron.candid.cqrs.query.QueryBusMiddlewareChain;
 
@@ -21,7 +22,7 @@ public class ExecutionDurationLoggingQueryBusMiddleware implements QueryBusMiddl
     public ExecutionDurationLoggingQueryBusMiddleware() {
     }
 
-    public <T> T dispatch(Query<T> query, QueryBusMiddlewareChain next) {
+    public <T> T dispatch(Query<T> query, QueryBus next) {
         LOGGER.info("Processing simple query of type :" + query.getClass().getName());
 
         long timeBefore = System.nanoTime();
