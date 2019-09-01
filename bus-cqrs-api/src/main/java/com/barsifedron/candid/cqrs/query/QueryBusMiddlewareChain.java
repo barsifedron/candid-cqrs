@@ -3,8 +3,10 @@ package com.barsifedron.candid.cqrs.query;
 
 import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -13,12 +15,12 @@ import static java.util.stream.Collectors.toList;
  * Chain of responsibility pattern, aka, infinite interceptors... Will allow us
  * to dynamically create chains of middleware.
  */
-public class QueryBusMiddlewareChain implements QueryBus{
+public class QueryBusMiddlewareChain implements QueryBus {
 
     private final QueryBusMiddleware middleware;
     private final QueryBusMiddlewareChain nextInChain;
 
-    public QueryBusMiddlewareChain(QueryBusMiddleware middleware, QueryBusMiddlewareChain nextInChain) {
+    private QueryBusMiddlewareChain(QueryBusMiddleware middleware, QueryBusMiddlewareChain nextInChain) {
         this.middleware = middleware;
         this.nextInChain = nextInChain;
     }
@@ -27,7 +29,6 @@ public class QueryBusMiddlewareChain implements QueryBus{
     public <T> T dispatch(Query<T> query) {
         return middleware.dispatch(query, nextInChain);
     }
-
 
     <T extends QueryBusMiddleware> boolean containsInstanceOf(Class<T> middlewareClass) {
         if (middleware == null) {
@@ -42,6 +43,24 @@ public class QueryBusMiddlewareChain implements QueryBus{
         return nextInChain.containsInstanceOf(middlewareClass);
     }
 
+    @Override
+    public String toString() {
+        return middlewareList().stream().collect(Collectors.joining(
+                "\n\t",
+                "\nQuery event bus middleware chain :\n[\n\t",
+                "\n]"
+        ));
+    }
+
+    private List<String> middlewareList() {
+        if (middleware.getClass().isAssignableFrom(QueryBusDispatcher.class)) {
+            return Stream.of(middleware.getClass().getName()).collect(toList());
+        }
+        List<String> middlewareNames = new ArrayList();
+        middlewareNames.add(middleware.getClass().getName());
+        middlewareNames.addAll(nextInChain.middlewareList());
+        return middlewareNames;
+    }
 
     public static class Factory {
 
@@ -85,13 +104,12 @@ public class QueryBusMiddlewareChain implements QueryBus{
         private QueryBusMiddlewareChain unreachableNextInChain() {
             QueryBusMiddleware unreachableMiddleware = new QueryBusMiddleware() {
                 @Override
-                public <T> T dispatch(Query<T> query, QueryBusMiddlewareChain next) {
+                public <T> T dispatch(Query<T> query, QueryBus next) {
                     throw new IllegalArgumentException("This should never be called");
                 }
             };
             return new QueryBusMiddlewareChain(unreachableMiddleware, null);
         }
     }
-
 
 }

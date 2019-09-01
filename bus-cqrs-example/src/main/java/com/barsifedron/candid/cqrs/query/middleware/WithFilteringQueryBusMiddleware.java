@@ -1,8 +1,8 @@
 package com.barsifedron.candid.cqrs.query.middleware;
 
 import com.barsifedron.candid.cqrs.query.Query;
+import com.barsifedron.candid.cqrs.query.QueryBus;
 import com.barsifedron.candid.cqrs.query.QueryBusMiddleware;
-import com.barsifedron.candid.cqrs.query.QueryBusMiddlewareChain;
 
 
 /**
@@ -17,7 +17,7 @@ public class WithFilteringQueryBusMiddleware<V> implements QueryBusMiddleware {
         this.filteringClass = filteringClass;
     }
 
-    public <T> T dispatch(Query<T> query, QueryBusMiddlewareChain next) {
+    public <T> T dispatch(Query<T> query, QueryBus next) {
         if (query.getClass().isInstance(filteringClass)) {
             return next.dispatch(query);
         }

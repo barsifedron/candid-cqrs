@@ -1,10 +1,13 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
 
+
 import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -18,7 +21,7 @@ public class DomainEventBusMiddlewareChain implements DomainEventBus {
     private final DomainEventBusMiddleware middleware;
     private final DomainEventBusMiddlewareChain nextInChain;
 
-    public DomainEventBusMiddlewareChain(DomainEventBusMiddleware middleware, DomainEventBusMiddlewareChain nextInChain) {
+    private DomainEventBusMiddlewareChain(DomainEventBusMiddleware middleware, DomainEventBusMiddlewareChain nextInChain) {
         this.middleware = middleware;
         this.nextInChain = nextInChain;
     }
@@ -42,6 +45,25 @@ public class DomainEventBusMiddlewareChain implements DomainEventBus {
         }
         return nextInChain.containsInstanceOf(middlewareClass);
 
+    }
+
+    @Override
+    public String toString() {
+        return middlewareList().stream().collect(Collectors.joining(
+                "\n\t",
+                "\nDomain event bus middleware chain :\n[\n\t",
+                "\n]"
+        ));
+    }
+
+    private List<String> middlewareList() {
+        if (middleware.getClass().isAssignableFrom(DomainEventBusDispatcher.class)) {
+            return Stream.of(middleware.getClass().getName()).collect(toList());
+        }
+        List<String> middlewareNames = new ArrayList();
+        middlewareNames.add(middleware.getClass().getName());
+        middlewareNames.addAll(nextInChain.middlewareList());
+        return middlewareNames;
     }
 
 

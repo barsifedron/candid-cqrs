@@ -32,7 +32,7 @@ public class CommandBusFactory {
      * that is in the separate bus-cqs module. It should be easy for you to adapt.
      */
     public CommandBus newSimpleCommandBus() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new WithExecutionDurationLogging(),
                 new DomainEventsDispatcher(eventBus),
                 new CommandBusDispatcher(commandHandlers));
@@ -44,7 +44,7 @@ public class CommandBusFactory {
      * Not sure why one would want to do that but it makes for an example of wrapping the command buses to obtain complex behaviors.
      */
     public CommandBus newSimpleFilteringCommandBus() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new WithExecutionDurationLogging(),
                 new WithFilteringByCommandType(Serializable.class),
                 new DomainEventsDispatcher(eventBus),

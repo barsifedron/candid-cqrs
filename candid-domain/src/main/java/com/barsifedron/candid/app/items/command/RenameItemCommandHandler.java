@@ -37,7 +37,7 @@ public class RenameItemCommandHandler implements CommandHandler<NoResult, Rename
         DomainEvent domainEvent = new ItemRenamed(
                 itemToRename.id(),
                 new ItemName(command.newItemName));
-        return CommandResponse.withoutResult(domainEvent);
+        return CommandResponse.empty().withAddedDomainEvents(domainEvent);
     }
 
     @Override

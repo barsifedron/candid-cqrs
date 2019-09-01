@@ -10,24 +10,25 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class DomainEventBusMiddlewareChainTest {
 
     public DomainEventBusMiddlewareChainTest() {
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailToConstructEmptyMiddlewareChain() {
         new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(new ArrayList<>());
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailINoDispatcherMiddleware() {
         new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
         new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
@@ -37,7 +38,7 @@ public class DomainEventBusMiddlewareChainTest {
     }
 
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
         new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),

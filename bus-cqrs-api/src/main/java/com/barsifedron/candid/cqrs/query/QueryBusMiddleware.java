@@ -15,5 +15,5 @@ package com.barsifedron.candid.cqrs.query;
  * See an alternative way of doing this in the `bus-cqs` module.
  */
 public interface QueryBusMiddleware {
-    <T> T dispatch(Query<T> command, QueryBusMiddlewareChain next);
+    <T> T dispatch(Query<T> command, QueryBus next);
 }

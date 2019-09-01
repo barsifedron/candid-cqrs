@@ -1,10 +1,19 @@
 package com.barsifedron.candid.cqrs.command.middleware;
 
-import com.barsifedron.candid.cqrs.command.*;
+import com.barsifedron.candid.cqrs.command.Command;
+import com.barsifedron.candid.cqrs.command.CommandBus;
+import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
+import com.barsifedron.candid.cqrs.command.CommandHandler;
+import com.barsifedron.candid.cqrs.command.CommandResponse;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * This is in charge of dispatching the command to the right Command Handler.
@@ -14,22 +23,32 @@ import static java.util.stream.Collectors.toMap;
  */
 public class CommandBusDispatcher implements CommandBusMiddleware {
 
-    private final Map<Class, CommandHandler> handlers;
+    private final Map<Class<Command>, Supplier<CommandHandler>> handlers;
+
+    public CommandBusDispatcher(CommandHandler... commandHandlers) {
+        this(Stream.of(commandHandlers).collect(toSet()));
+    }
+
+    public CommandBusDispatcher(Set<? extends CommandHandler> handlers) {
+        this(handlers.stream().collect(toMap(
+                handler -> handler.listenTo(),
+                handler -> () -> handler))
+        );
+    }
 
     /**
      * The set of handlers will usually be injected by your dependency injection tool.
      * Examples for this can be found in the other modules.
      */
-    public CommandBusDispatcher(Set<? extends CommandHandler> commandHandlers) {
-        handlers = commandHandlers.stream().collect(toMap(
-                handler -> handler.listenTo(),
-                handler -> handler));
+    public CommandBusDispatcher(Map<Class<Command>, Supplier<CommandHandler>> handlers) {
+        this.handlers = handlers;
     }
 
     @Override
     public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus unreachableCommandBus) {
         CommandHandler commandHandler = Optional
                 .ofNullable(handlers.get(command.getClass()))
+                .map(handlerSupplier -> handlerSupplier.get())
                 .orElseThrow(() -> new CommandHandlerNotFoundException(command.getClass()));
         return commandHandler.handle(command);
     }

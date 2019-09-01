@@ -10,26 +10,27 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class CommandBusMiddlewareChainTest {
 
     public CommandBusMiddlewareChainTest() {
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        new CommandBusMiddlewareChain.Factory().chain(new ArrayList<>());
+        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new ArrayList<>());
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailIfNoDispatcherMiddleware() {
-        new CommandBusMiddlewareChain.Factory().chain(new FirstTestMiddleware());
+        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
     }
 
-    @Test(expected = java.lang.RuntimeException.class)
+    @Test(expected = RuntimeException.class)
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        new CommandBusMiddlewareChain.Factory().chain(
+        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()),
                 new SecondTestMiddleware()
@@ -39,7 +40,7 @@ public class CommandBusMiddlewareChainTest {
     @Test
     public void shouldBuildAChainOfMiddleware() {
 
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
 
@@ -51,7 +52,7 @@ public class CommandBusMiddlewareChainTest {
     @Test(expected = CommandBusDispatcher.CommandHandlerNotFoundException.class)
     public void shouldFailToProcessCommandsWhenNoRightHandler() {
 
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
@@ -62,7 +63,7 @@ public class CommandBusMiddlewareChainTest {
     @Test
     public void shouldProcessCommandsWhenRightHandler() {
         Set<DoNothingCommandHandler> handlers = Stream.of(new DoNothingCommandHandler()).collect(toSet());
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chain(
+        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusDispatcher(handlers));
@@ -103,7 +104,7 @@ public class CommandBusMiddlewareChainTest {
     static class DoNothingCommandHandler implements CommandHandler<NoResult, DoNothingCommand> {
         @Override
         public CommandResponse<NoResult> handle(DoNothingCommand command) {
-            return CommandResponse.withoutResult();
+            return CommandResponse.empty();
         }
 
         @Override

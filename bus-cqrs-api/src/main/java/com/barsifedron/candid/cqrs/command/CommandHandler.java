@@ -7,6 +7,6 @@ public interface CommandHandler<V, K extends Command<V>> {
 
     CommandResponse<V> handle(K command);
 
-    Class listenTo();
+    Class<K> listenTo();
 
 }
