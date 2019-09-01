@@ -1,6 +1,9 @@
 rootProject.name = "candid-cqrs"
 
-include( "bus-cqrs-api", "bus-cqrs-example", "cqrs-utils","cqrs-guice-utils", "candid-domain")
-include 'cqrs-utils'
-include 'cqrs-guice-utils'
-
+include(
+    "bus-cqrs-api",
+    "bus-cqrs-example",
+    "cqrs-utils",
+    "cqrs-guice-utils",
+    "candid-domain"
+)
