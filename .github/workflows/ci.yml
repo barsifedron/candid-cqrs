@@ -1,0 +1,52 @@
+name: CI
+
+# https://help.github.com/en/articles/workflow-syntax-for-github-actions
+# https://help.github.com/en/articles/configuring-a-workflow
+# TODO use fixed os versions
+
+on:
+    push:
+        branches:
+            - master
+    pull_request:
+
+jobs:
+
+    build:
+
+        name: "Check"
+
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, macos-latest, windows-latest]
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+
+            - name: "git clone"
+              uses: actions/checkout@v1
+
+            - name: "setup jdk"
+              uses: actions/setup-java@v1
+              with:
+                  java-version: 1.8
+
+            - name: "./gradlew build --dry-run"
+              uses: eskatos/gradle-command-action@v1
+              with:
+                  arguments: build --dry-run
+              env:
+                  CI: true
+
+            - name: "./gradlew build"
+              uses: eskatos/gradle-command-action@v1
+              with:
+                  arguments: build
+              env:
+                  CI: true
+
+            - name: "git diff --exit-code"
+              run: git diff --exit-code
+

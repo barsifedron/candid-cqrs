@@ -2,6 +2,8 @@
 
 A simple an accessible CQS/CQRS set of libraries.
 
+[![Build Status](https://github.com/barsifedron/candid-cqrs/workflows/CI/badge.svg)](https://github.com/barsifedron/candid-cqrs/actions)
+
 ## Goals :
 1. Illustrate the CQS/CQRS usages in a simple and clear manner, even for the beginner
 2. Provide a "ready to use" seed that people can use as it is or really easily modify for their own usage
