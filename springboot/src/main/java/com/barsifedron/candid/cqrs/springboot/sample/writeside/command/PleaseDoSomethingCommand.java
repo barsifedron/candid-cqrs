@@ -19,9 +19,6 @@ public class PleaseDoSomethingCommand implements Command<String>, CommandToLog {
     @NotNull
     public final Integer paramBetweenOneAndTen;
 
-    /**
-     * Not a big fan of lombok but there really is no shame in using it for this
-     */
     public PleaseDoSomethingCommand(Integer paramAboveZero, Integer paramBetweenOneAndTen) {
         this.paramAboveZero = paramAboveZero;
         this.paramBetweenOneAndTen = paramBetweenOneAndTen;
@@ -30,8 +27,6 @@ public class PleaseDoSomethingCommand implements Command<String>, CommandToLog {
 
     /**
      * The logging intention expressed with the CommandToLog interface will result in a call the toString method.
-     * <p>
-     * Not a big fan of lombok but there really is no shame in using it for this
      */
     @Override
     public String toString() {
