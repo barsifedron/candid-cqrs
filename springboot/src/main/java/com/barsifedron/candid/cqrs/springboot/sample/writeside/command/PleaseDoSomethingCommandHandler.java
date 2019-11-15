@@ -15,7 +15,7 @@ public class PleaseDoSomethingCommandHandler implements CommandHandler<String, P
                 .withResult("DONE!")
                 .withAddedDomainEvents(
                         new SomethingWasDoneEvent(
-                                "barsifedron@gmail.com",
+                                "barsifedron@no-spam.com",
                                 666)
                 );
     }
