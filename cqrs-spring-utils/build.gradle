@@ -2,5 +2,5 @@ dependencies {
 
     api project(":bus-cqrs-api")
 
-    compile "org.springframework:spring-context:4.3.14.RELEASE"
+    api "org.springframework:spring-context:4.3.14.RELEASE"
 }
