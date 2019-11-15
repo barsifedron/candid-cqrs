@@ -17,8 +17,6 @@ dependencies {
     implementation project(":bus-cqrs-api")
     implementation project(":cqrs-utils")
     implementation project(":cqrs-spring-utils")
-    compile "javax.inject:javax.inject:1"
-    compile "javax.el:javax.el-api:3.0.0"
 
     compile "org.springframework.boot:spring-boot-starter-web"
     testCompile 'org.springframework.boot:spring-boot-starter-test'

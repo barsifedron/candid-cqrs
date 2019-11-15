@@ -17,11 +17,10 @@ import java.util.function.Supplier;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class QueryHandlersRegistry {
 
-    private Map<Class<Query>, Supplier<QueryHandler>> map;
+    private final Map<Class<Query>, Supplier<QueryHandler>>  map = new HashMap<>();
 
     @Autowired
     public QueryHandlersRegistry(ApplicationContext applicationContext) {
-        map = new HashMap<>();
         String[] names = applicationContext.getBeanNamesForType(QueryHandler.class);
         for (String name : names) {
             register(applicationContext, name);

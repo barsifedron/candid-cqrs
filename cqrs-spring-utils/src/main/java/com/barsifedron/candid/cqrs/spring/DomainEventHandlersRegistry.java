@@ -19,11 +19,10 @@ import java.util.function.Supplier;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class DomainEventHandlersRegistry {
 
-    private Map<Class<DomainEvent>, List<Supplier<DomainEventHandler>>> map;
+    private final Map<Class<DomainEvent>, List<Supplier<DomainEventHandler>>> map = new HashMap<>();
 
     @Autowired
     public DomainEventHandlersRegistry(ApplicationContext applicationContext) {
-        map = new HashMap<>();
         String[] names = applicationContext.getBeanNamesForType(DomainEventHandler.class);
         for (String name : names) {
             register(applicationContext, name);
@@ -32,15 +31,8 @@ public class DomainEventHandlersRegistry {
 
     private void register(ApplicationContext applicationContext, String name) {
         Class<DomainEventHandler<?>> handlerClass = (Class<DomainEventHandler<?>>) applicationContext.getType(name);
-
-        System.out.println("handlerClass = " + handlerClass);
         Class<?>[] generics = GenericTypeResolver.resolveTypeArguments(handlerClass, DomainEventHandler.class);
-
-        System.out.println("generics = " + generics);
         Class<DomainEvent> domainType = (Class<DomainEvent>) generics[0];
-
-        System.out.println("domainType = " + domainType);
-
         map.putIfAbsent(domainType, new ArrayList<>());
         map.get(domainType).add(() -> applicationContext.getBean(handlerClass));
     }

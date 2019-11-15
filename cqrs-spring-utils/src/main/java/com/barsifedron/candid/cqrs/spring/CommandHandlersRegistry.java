@@ -17,11 +17,10 @@ import java.util.function.Supplier;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class CommandHandlersRegistry {
 
-    private Map<Class<Command>, Supplier<CommandHandler>> map;
+    private final Map<Class<Command>, Supplier<CommandHandler>> map = new HashMap<>();
 
     @Autowired
     public CommandHandlersRegistry(ApplicationContext applicationContext) {
-        map = new HashMap<>();
         String[] names = applicationContext.getBeanNamesForType(CommandHandler.class);
         for (String name : names) {
             register(applicationContext, name);

@@ -20,7 +20,7 @@ public class ExceptionLoggingQueryBusMiddleware implements QueryBusMiddleware {
 
         } catch (Throwable th) {
 
-            LOGGER.info(""
+            LOGGER.severe(""
                     + "An error was raised while executing query of type "
                     + query.getClass().getName()
                     + ". Error was of type "
