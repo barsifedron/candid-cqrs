@@ -1,0 +1,6 @@
+dependencies {
+
+    api project(":bus-cqrs-api")
+
+    api "org.springframework:spring-context:4.3.14.RELEASE"
+}

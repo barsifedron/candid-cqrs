@@ -1,9 +1,12 @@
 rootProject.name = "candid-cqrs"
 
 include(
-    "bus-cqrs-api",
-    "bus-cqrs-example",
-    "cqrs-utils",
-    "cqrs-guice-utils",
-    "candid-domain"
+        "bus-cqrs-api",
+        "bus-cqrs-example",
+        "cqrs-utils",
+        "cqrs-guice-utils",
+        "candid-domain",
+        "springboot"
 )
+include 'cqrs-spring-utils'
+
