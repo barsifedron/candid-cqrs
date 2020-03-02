@@ -6,7 +6,7 @@ include(
         "cqrs-utils",
         "cqrs-guice-utils",
         "candid-domain",
-        "springboot"
+        "cqrs-springboot-sample"
 )
 include 'cqrs-spring-utils'
 

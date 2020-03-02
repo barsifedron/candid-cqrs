@@ -20,39 +20,27 @@ public class CommandBusMiddlewareChainTest {
 
     @Test(expected = RuntimeException.class)
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new ArrayList<>());
+        WiredCommandBus.of(new ArrayList<>());
     }
 
     @Test(expected = RuntimeException.class)
     public void shouldFailIfNoDispatcherMiddleware() {
-        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
+        WiredCommandBus.of(new FirstTestMiddleware());
     }
 
     @Test(expected = RuntimeException.class)
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        WiredCommandBus.of(
                 new FirstTestMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()),
                 new SecondTestMiddleware()
         );
     }
 
-    @Test
-    public void shouldBuildAChainOfMiddleware() {
-
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
-                new FirstTestMiddleware(),
-                new CommandBusDispatcher(new HashSet<>()));
-
-        assertTrue(chain.usesMiddlewareInstanceOf(FirstTestMiddleware.class));
-        assertTrue(chain.usesMiddlewareInstanceOf(CommandBusDispatcher.class));
-        assertFalse(chain.usesMiddlewareInstanceOf(SecondTestMiddleware.class));
-    }
-
     @Test(expected = CommandBusDispatcher.CommandHandlerNotFoundException.class)
     public void shouldFailToProcessCommandsWhenNoRightHandler() {
 
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus chain = WiredCommandBus.of(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
@@ -63,11 +51,11 @@ public class CommandBusMiddlewareChainTest {
     @Test
     public void shouldProcessCommandsWhenRightHandler() {
         Set<DoNothingCommandHandler> handlers = Stream.of(new DoNothingCommandHandler()).collect(toSet());
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = WiredCommandBus.of(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new CommandBusDispatcher(handlers));
-        CommandResponse<NoResult> response = chain.dispatch(new DoNothingCommand());
+        CommandResponse<NoResult> response = bus.dispatch(new DoNothingCommand());
     }
 
 
@@ -102,6 +90,7 @@ public class CommandBusMiddlewareChainTest {
     }
 
     static class DoNothingCommandHandler implements CommandHandler<NoResult, DoNothingCommand> {
+
         @Override
         public CommandResponse<NoResult> handle(DoNothingCommand command) {
             return CommandResponse.empty();

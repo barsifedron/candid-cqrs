@@ -11,10 +11,14 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 
 public class CommandBusMiddlewareTest {
@@ -23,12 +27,70 @@ public class CommandBusMiddlewareTest {
     }
 
     @Test
+    public void canDecorateACommandBus() {
+
+        List<String> logs = new ArrayList<>();
+
+        CommandBusMiddleware firstMiddleware = new CommandBusMiddleware() {
+            @Override
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+                logs.add("First middleware, before forward.");
+                CommandResponse<T> commandResponse = next.dispatch(command);
+                logs.add("First middleware, after forward.");
+                return commandResponse;
+            }
+        };
+
+        CommandBusMiddleware secondMiddleware = new CommandBusMiddleware() {
+            @Override
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+                logs.add("Second middleware, before forward.");
+                CommandResponse<T> commandResponse = next.dispatch(command);
+                logs.add("Second middleware, after forward.");
+                return commandResponse;
+            }
+        };
+
+        Set<CommandHandler> handlers = Stream.of(new ProducesThreeEventsCommandHandler()).collect(toSet());
+        CommandBus baseBus = new CommandBus() {
+            @Override
+            public <T> CommandResponse<T> dispatch(Command<T> command) {
+                logs.add("Decorated bus execution.");
+                return new CommandBusDispatcher(handlers).dispatch(command, null);
+            }
+        };
+
+        CommandBus commandBus = firstMiddleware.wrap(secondMiddleware.wrap(baseBus));
+        CommandBus secondCommandBus = (firstMiddleware.wrap(secondMiddleware)).wrap(baseBus);
+
+        commandBus.dispatch(new CommandThatProducesThreeEvents());
+        assertEquals(
+                "First middleware, before forward.\n" +
+                        "Second middleware, before forward.\n" +
+                        "Decorated bus execution.\n" +
+                        "Second middleware, after forward.\n" +
+                        "First middleware, after forward.",
+                logs.stream().collect(Collectors.joining("\n")));
+
+        logs.clear();
+
+        secondCommandBus.dispatch(new CommandThatProducesThreeEvents());
+        assertEquals(
+                "First middleware, before forward.\n" +
+                        "Second middleware, before forward.\n" +
+                        "Decorated bus execution.\n" +
+                        "Second middleware, after forward.\n" +
+                        "First middleware, after forward.",
+                logs.stream().collect(Collectors.joining("\n")));
+    }
+
+    @Test
     public void canDispatchToEventBus() {
 
         // Given
         DomainEventBus domainEventBus = Mockito.mock(DomainEventBus.class);
         Set<CommandHandler> handlers = Stream.of(new ProducesThreeEventsCommandHandler()).collect(toSet());
-        CommandBus commandBus = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus commandBus = new WiredCommandBus().of(
                 new DomainEventsDispatcher(domainEventBus),
                 new CommandBusDispatcher(handlers));
 
@@ -59,7 +121,7 @@ public class CommandBusMiddlewareTest {
 
         // Given
         // Command Bus
-        CommandBus commandBus = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus commandBus = new WiredCommandBus().of(
                 new DomainEventsDispatcher(eventBus),
                 new CommandBusDispatcher(new ProducesThreeEventsCommandHandler()));
         // When

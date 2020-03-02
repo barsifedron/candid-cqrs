@@ -1,7 +1,7 @@
 package com.barsifedron.candid.cqrs.springboot;
 
 import com.barsifedron.candid.cqrs.command.CommandBus;
-import com.barsifedron.candid.cqrs.command.CommandBusMiddlewareChain;
+import com.barsifedron.candid.cqrs.command.WiredCommandBus;
 import com.barsifedron.candid.cqrs.command.middleware.*;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddlewareChain;
 import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
@@ -32,7 +32,7 @@ public class CommandBusFactory {
                 new DomainEventBusDispatcher(domainEventHandlersRegistry.handlers())
         );
 
-        return new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        return WiredCommandBus.of(
                 new WithExecutionDurationLogging(),
                 new DetailedLoggingCommandBusMiddleware(),
                 new ValidatingCommandBusMiddleware(),

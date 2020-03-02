@@ -1,11 +1,6 @@
 package com.barsifedron.candid.cqrs.command.middleware;
 
-import com.barsifedron.candid.cqrs.command.Command;
-import com.barsifedron.candid.cqrs.command.CommandBus;
-import com.barsifedron.candid.cqrs.command.CommandBusMiddlewareChain;
-import com.barsifedron.candid.cqrs.command.CommandHandler;
-import com.barsifedron.candid.cqrs.command.CommandResponse;
-import com.barsifedron.candid.cqrs.command.NoResult;
+import com.barsifedron.candid.cqrs.command.*;
 import org.junit.Test;
 
 import javax.validation.constraints.Max;
@@ -22,50 +17,45 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsNull() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus =  new WiredCommandBus().of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand(null, 21);
         bus.dispatch(testCommand);
     }
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfAgeIsNegative() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = new WiredCommandBus().of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack Malone", -9);
         bus.dispatch(testCommand);
     }
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfMinor() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = new WiredCommandBus().of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack malone", 16);
         bus.dispatch(testCommand);
     }
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfVotedForBrexit() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = new WiredCommandBus().of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack malone", 70);
         bus.dispatch(testCommand);
     }
 
     @Test
     public void shouldBeHappyWhenTheCommandIsValid() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = new WiredCommandBus().of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(Stream.of(new TestCommandHandler()).collect(Collectors.toSet())));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack malone", 65);
         bus.dispatch(testCommand);
     }

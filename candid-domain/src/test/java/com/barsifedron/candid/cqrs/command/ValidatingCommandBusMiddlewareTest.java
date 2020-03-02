@@ -18,53 +18,49 @@ public class ValidatingCommandBusMiddlewareTest {
     public ValidatingCommandBusMiddlewareTest() {
     }
 
-
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfEmailIsBlank() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = WiredCommandBus.of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("", "aName");
         bus.dispatch(testCommand);
     }
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfEmailIsNotValid() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = WiredCommandBus.of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack@", "aName");
         bus.dispatch(testCommand);
     }
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsNull() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+
+        CommandBus bus = WiredCommandBus.of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack@hotmail.com", null);
         bus.dispatch(testCommand);
     }
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsBlank() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+
+        CommandBus bus = WiredCommandBus.of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack@hotmail.com", "");
         bus.dispatch(testCommand);
     }
 
     @Test
     public void shouldBeHappyWhenTheCommandIsValid() {
-        CommandBusMiddlewareChain chain = new CommandBusMiddlewareChain.Factory().chainOfMiddleware(
+        CommandBus bus = WiredCommandBus.of(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(Stream.of(new TestCommandHandler()).collect(Collectors.toSet())));
-        CommandBus bus = chain::dispatch;
         TestCommand testCommand = new TestCommand("jack@hotmail.com", "steve");
         bus.dispatch(testCommand);
     }
