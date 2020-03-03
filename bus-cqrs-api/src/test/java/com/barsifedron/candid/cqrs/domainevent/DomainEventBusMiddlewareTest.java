@@ -1,36 +1,93 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
+
 import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
-public class DomainEventBusMiddlewareChainTest {
+public class DomainEventBusMiddlewareTest {
 
-    public DomainEventBusMiddlewareChainTest() {
+
+    @Test
+    public void canDecorateADomainEventBusOrADomainEventMiddleware() {
+
+        List<String> logs = new ArrayList<>();
+
+        DomainEventBusMiddleware firstMiddleware = new DomainEventBusMiddleware() {
+            @Override
+            public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
+                logs.add("First middleware");
+                next.dispatch(domainEvent);
+                logs.add("First middleware");
+            }
+        };
+
+        DomainEventBusMiddleware secondMiddleware = new DomainEventBusMiddleware() {
+            @Override
+            public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
+                logs.add("\tSecond middleware");
+                next.dispatch(domainEvent);
+                logs.add("\tSecond middleware");
+
+            }
+        };
+
+        DomainEventBus baseBus = new DomainEventBus() {
+            @Override
+            public void dispatch(DomainEvent domainEvent) {
+                logs.add("\t\tDecorated bus execution.");
+                 new DomainEventBusDispatcher(new NothingToDoDomainEventHandler()).dispatch(domainEvent, null);
+            }
+        };
+
+        DomainEventBus domainEventBus = firstMiddleware.decorate(secondMiddleware.decorate(baseBus));
+        DomainEventBus secondDomainEventBus = (firstMiddleware.decorate(secondMiddleware)).decorate(baseBus);
+
+        domainEventBus.dispatch(new NothingToDoEvent());
+        assertEquals(
+                "First middleware\n" +
+                        "\tSecond middleware\n" +
+                        "\t\tDecorated bus execution.\n" +
+                        "\tSecond middleware\n" +
+                        "First middleware",
+                logs.stream().collect(Collectors.joining("\n")));
+
+        logs.clear();
+
+        secondDomainEventBus.dispatch(new NothingToDoEvent());
+        assertEquals(
+                "First middleware\n" +
+                        "\tSecond middleware\n" +
+                        "\t\tDecorated bus execution.\n" +
+                        "\tSecond middleware\n" +
+                        "First middleware",
+                logs.stream().collect(Collectors.joining("\n")));
     }
+
 
     @Test(expected = RuntimeException.class)
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(new ArrayList<>());
+        DomainEventBusMiddleware.chainManyIntoADomainEventBus();
     }
 
     @Test(expected = RuntimeException.class)
     public void shouldFailINoDispatcherMiddleware() {
-        new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(new FirstTestMiddleware());
+        DomainEventBusMiddleware.chainManyIntoADomainEventBus(new FirstTestMiddleware());
     }
 
     @Test(expected = RuntimeException.class)
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
+        DomainEventBusMiddleware.chainManyIntoADomainEventBus(
                 new FirstTestMiddleware(),
                 new DomainEventBusDispatcher(new HashSet<>()),
                 new SecondTestMiddleware()
@@ -40,28 +97,18 @@ public class DomainEventBusMiddlewareChainTest {
 
     @Test(expected = RuntimeException.class)
     public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
-        new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
+        DomainEventBusMiddleware.chainManyIntoADomainEventBus(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 null,
                 new DomainEventBusDispatcher(new HashSet<>()));
     }
 
-    @Test
-    public void shouldBuildAChainOfMiddleware() {
-        DomainEventBusMiddlewareChain chain = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
-                new FirstTestMiddleware(),
-                new DomainEventBusDispatcher(new HashSet<>()));
-        assertTrue(chain.containsInstanceOf(FirstTestMiddleware.class));
-        assertTrue(chain.containsInstanceOf(DomainEventBusDispatcher.class));
-        assertFalse(chain.containsInstanceOf(SecondTestMiddleware.class));
-    }
-
 
     @Test
     public void shouldProcessDomainEventsWhenRightHandler() {
         Set<NothingToDoDomainEventHandler> handlers = Stream.of(new NothingToDoDomainEventHandler()).collect(toSet());
-        DomainEventBusMiddlewareChain chain = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
+        DomainEventBus chain = DomainEventBusMiddleware.chainManyIntoADomainEventBus(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new DomainEventBusDispatcher(handlers));

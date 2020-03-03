@@ -1,16 +1,15 @@
 package com.barsifedron.candid.cqrs.springboot;
 
 import com.barsifedron.candid.cqrs.command.CommandBus;
-import com.barsifedron.candid.cqrs.command.WiredCommandBus;
+import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
 import com.barsifedron.candid.cqrs.command.middleware.*;
-import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddlewareChain;
+import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
+import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
 import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
 import com.barsifedron.candid.cqrs.spring.CommandHandlersRegistry;
 import com.barsifedron.candid.cqrs.spring.DomainEventHandlersRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.inject.Inject;
 
 @Component
 public class CommandBusFactory {
@@ -28,15 +27,13 @@ public class CommandBusFactory {
 
     public CommandBus simpleBus() {
 
-        DomainEventBusMiddlewareChain domainEventBus = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
-                new DomainEventBusDispatcher(domainEventHandlersRegistry.handlers())
-        );
+        DomainEventBus domainEventBus = DomainEventBusMiddleware.chainManyIntoADomainEventBus(new DomainEventBusDispatcher(domainEventHandlersRegistry.handlers()));
 
-        return WiredCommandBus.of(
+        return CommandBusMiddleware.chainManyIntoACommandBus(
                 new WithExecutionDurationLogging(),
                 new DetailedLoggingCommandBusMiddleware(),
                 new ValidatingCommandBusMiddleware(),
-                new DomainEventsDispatcher(domainEventBus),
+                new CommandResponseDomainEventsDispatcher(domainEventBus),
                 new CommandBusDispatcher(commandHandlersRegistry.handlers())
         );
     }

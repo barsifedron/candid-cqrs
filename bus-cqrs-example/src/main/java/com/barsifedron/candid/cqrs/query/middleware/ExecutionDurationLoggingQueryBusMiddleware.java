@@ -3,7 +3,6 @@ package com.barsifedron.candid.cqrs.query.middleware;
 import com.barsifedron.candid.cqrs.query.Query;
 import com.barsifedron.candid.cqrs.query.QueryBus;
 import com.barsifedron.candid.cqrs.query.QueryBusMiddleware;
-import com.barsifedron.candid.cqrs.query.QueryBusMiddlewareChain;
 
 import java.util.logging.Logger;
 

@@ -8,7 +8,8 @@ import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
 
 /**
  * Your command handlers may return events (For example UserPhoneNumberUpdated).
- * This middleware is in charge of dispatching those events to their right full event handlers.
+ * This middleware is in charge of dispatching those events to the event bus, which will deliver the to their right full event handlers.
+ * <p>
  * Those handlers can in turn react to these events to do many things such as updating counters,
  * updating database projections for your read side or plan to communicate new facts to the outside world.
  * Beware : The events listeners we refer to here are local events listeners. these events should not be
@@ -29,11 +30,11 @@ import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
  * <ul/>
  * <p>
  */
-public class DomainEventsDispatcher implements CommandBusMiddleware {
+public class CommandResponseDomainEventsDispatcher implements CommandBusMiddleware {
 
     private final DomainEventBus eventBus;
 
-    public DomainEventsDispatcher(DomainEventBus eventBus) {
+    public CommandResponseDomainEventsDispatcher(DomainEventBus eventBus) {
         this.eventBus = eventBus;
     }
 

@@ -24,11 +24,10 @@ public class QueryBusFactory {
      * in the middleware package?
      */
     public QueryBus newSimpleQueryBus() {
-        QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
+        return QueryBusMiddleware.chainManyIntoAQueryBus(
                 new ExecutionDurationLoggingQueryBusMiddleware(),
                 new QueryBusDispatcher(queryHandlers)
         );
-        return chain::dispatch;
     }
 
     /**
@@ -36,12 +35,11 @@ public class QueryBusFactory {
      * Not sure why one would want to do that but it makes for an example of wrapping query buses to obtain complex behaviors.
      */
     public QueryBus newSimpleQueryBusWithFiltering() {
-        QueryBusMiddlewareChain chain = new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
+        return QueryBusMiddleware.chainManyIntoAQueryBus(
                 new ExecutionDurationLoggingQueryBusMiddleware(),
                 new WithFilteringQueryBusMiddleware(Serializable.class),
                 new QueryBusDispatcher(queryHandlers)
         );
-        return chain::dispatch;
     }
 
 }

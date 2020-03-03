@@ -17,7 +17,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsNull() {
-        CommandBus bus =  new WiredCommandBus().of(
+        CommandBus bus =  CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand(null, 21);
@@ -26,7 +26,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfAgeIsNegative() {
-        CommandBus bus = new WiredCommandBus().of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack Malone", -9);
@@ -35,7 +35,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfMinor() {
-        CommandBus bus = new WiredCommandBus().of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack malone", 16);
@@ -44,7 +44,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfVotedForBrexit() {
-        CommandBus bus = new WiredCommandBus().of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack malone", 70);
@@ -53,7 +53,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test
     public void shouldBeHappyWhenTheCommandIsValid() {
-        CommandBus bus = new WiredCommandBus().of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(Stream.of(new TestCommandHandler()).collect(Collectors.toSet())));
         TestCommand testCommand = new TestCommand("jack malone", 65);

@@ -16,9 +16,8 @@ public class EventBusFactory {
     }
 
     public DomainEventBus build() {
-        DomainEventBusMiddlewareChain chain = new DomainEventBusMiddlewareChain.Factory().chainOfMiddleware(
+        return DomainEventBusMiddleware.chainManyIntoADomainEventBus(
                 new DomainEventBusDispatcher(handlers)
         );
-        return chain::dispatch;
     }
 }

@@ -2,7 +2,7 @@ package com.barsifedron.candid.cqrs.command;
 
 
 import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
-import com.barsifedron.candid.cqrs.command.middleware.DomainEventsDispatcher;
+import com.barsifedron.candid.cqrs.command.middleware.CommandResponseDomainEventsDispatcher;
 import com.barsifedron.candid.cqrs.command.middleware.WithExecutionDurationLogging;
 import com.barsifedron.candid.cqrs.command.middleware.WithFilteringByCommandType;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
@@ -32,9 +32,10 @@ public class CommandBusFactory {
      * that is in the separate bus-cqs module. It should be easy for you to adapt.
      */
     public CommandBus newSimpleCommandBus() {
-        return new WiredCommandBus().of(
+
+     return CommandBusMiddleware.chainManyIntoACommandBus(
                 new WithExecutionDurationLogging(),
-                new DomainEventsDispatcher(eventBus),
+                new CommandResponseDomainEventsDispatcher(eventBus),
                 new CommandBusDispatcher(commandHandlers));
     }
 
@@ -43,13 +44,13 @@ public class CommandBusFactory {
      * Not sure why one would want to do that but it makes for an example of wrapping the command buses to obtain complex behaviors.
      */
     public CommandBus newSimpleFilteringCommandBus() {
-        return new WiredCommandBus().of(
+
+        return CommandBusMiddleware.chainManyIntoACommandBus(
                 new WithExecutionDurationLogging(),
                 new WithFilteringByCommandType(Serializable.class),
-                new DomainEventsDispatcher(eventBus),
+                new CommandResponseDomainEventsDispatcher(eventBus),
                 new CommandBusDispatcher(commandHandlers));
     }
-
 }
 
 

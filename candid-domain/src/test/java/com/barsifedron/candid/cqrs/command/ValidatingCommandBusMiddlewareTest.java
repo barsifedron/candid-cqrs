@@ -20,7 +20,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfEmailIsBlank() {
-        CommandBus bus = WiredCommandBus.of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("", "aName");
@@ -29,7 +29,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfEmailIsNotValid() {
-        CommandBus bus = WiredCommandBus.of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack@", "aName");
@@ -39,7 +39,7 @@ public class ValidatingCommandBusMiddlewareTest {
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsNull() {
 
-        CommandBus bus = WiredCommandBus.of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack@hotmail.com", null);
@@ -49,7 +49,7 @@ public class ValidatingCommandBusMiddlewareTest {
     @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
     public void shouldFailIfNameIsBlank() {
 
-        CommandBus bus = WiredCommandBus.of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack@hotmail.com", "");
@@ -58,7 +58,7 @@ public class ValidatingCommandBusMiddlewareTest {
 
     @Test
     public void shouldBeHappyWhenTheCommandIsValid() {
-        CommandBus bus = WiredCommandBus.of(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(Stream.of(new TestCommandHandler()).collect(Collectors.toSet())));
         TestCommand testCommand = new TestCommand("jack@hotmail.com", "steve");

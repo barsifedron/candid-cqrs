@@ -1,6 +1,7 @@
 package com.barsifedron.candid.cqrs.springboot.sample;
 
-import com.barsifedron.candid.cqrs.query.QueryBusMiddlewareChain;
+import com.barsifedron.candid.cqrs.query.QueryBus;
+import com.barsifedron.candid.cqrs.query.QueryBusMiddleware;
 import com.barsifedron.candid.cqrs.query.middleware.*;
 import com.barsifedron.candid.cqrs.spring.QueryHandlersRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,8 @@ public class QueryBusFactory {
         this.queryHandlersRegistry = queryHandlersRegistry;
     }
 
-    public QueryBusMiddlewareChain simpleBus() {
-        return new QueryBusMiddlewareChain.Factory().chainOfMiddleware(
+    public QueryBus simpleBus() {
+        return QueryBusMiddleware.chainManyIntoAQueryBus(
                 new ExceptionLoggingQueryBusMiddleware(),
                 new DetailedLoggingQueryBusMiddleware(),
                 new ExecutionTimeLoggingQueryMiddleware(),

@@ -3,6 +3,7 @@ package com.barsifedron.candid.cqrs.command;
 import com.barsifedron.candid.cqrs.domainevent.DomainEvent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -45,8 +46,12 @@ public class CommandResponse<K> {
      * Does not override the list but add to the existing events.
      */
     public CommandResponse<K> withAddedDomainEvents(DomainEvent... events) {
+        return withAddedDomainEvents(Arrays.asList(events));
+    }
+
+    public CommandResponse<K> withAddedDomainEvents(List<DomainEvent> events) {
         List<DomainEvent> newDomainEvents = domainEvents.stream().collect(toList());
-        Stream.of(events).forEach(newDomainEvents::add);
+        events.forEach(newDomainEvents::add);
         return new CommandResponse(result, newDomainEvents);
     }
 
