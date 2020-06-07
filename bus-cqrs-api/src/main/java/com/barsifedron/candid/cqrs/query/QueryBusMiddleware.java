@@ -56,20 +56,37 @@ public interface QueryBusMiddleware {
         return Chain.manyIntoAQueryBus(Arrays.asList(middlewares));
     }
 
-    /**
-     * Creates a query bus from a list of middleware, wrapping them recursively into each others.
-     * The "last" middleware called must ALWAYS be the dispatcher and, contrarily to the others,
-     * will not forward the command but finally handle it to the command handlers.
-     * Hence the last Chain built with "null".
-     */
+    static QueryBusMiddleware chainManyIntoAQueryBusMiddleware(QueryBusMiddleware... middlewares) {
+        return Chain.manyIntoAQueryBusMiddleware(Arrays.asList(middlewares));
+    }
+
+
     class Chain {
 
+        /**
+         * Creates a query bus from a list of middleware, wrapping them recursively into each others.
+         * The "last" middleware called must ALWAYS be the dispatcher and, contrarily to the others,
+         * will not forward the command but finally handle it to the command handlers.
+         * Hence the last Chain built with "null".
+         */
         static QueryBus manyIntoAQueryBus(List<QueryBusMiddleware> middlewares) {
+
+            validate(middlewares);
+            validateLastMiddlewareIsDispatcher(middlewares);
+            QueryBusMiddleware compositeMiddleware = Chain.manyIntoAQueryBusMiddleware(middlewares);
+            return compositeMiddleware.decorate((QueryBus) null);
+        }
+
+        /**
+         * Wraps a list of middleware into each other to create a composite one.
+         */
+        static QueryBusMiddleware manyIntoAQueryBusMiddleware(List<QueryBusMiddleware> middlewares) {
+
             validate(middlewares);
             if (middlewares.size() == 1) {
-                return middlewares.get(0).decorate((QueryBus) null);
+                return middlewares.get(0);
             }
-            return middlewares.get(0).decorate(manyIntoAQueryBus(middlewares.subList(1, middlewares.size())));
+            return middlewares.get(0).decorate(manyIntoAQueryBusMiddleware(middlewares.subList(1, middlewares.size())));
         }
 
         private static void validate(List<QueryBusMiddleware> middlewares) {
@@ -82,13 +99,15 @@ public interface QueryBusMiddleware {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
+        }
+
+        private static void validateLastMiddlewareIsDispatcher(List<QueryBusMiddleware> middlewares) {
             QueryBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
             if (!lastMiddlewareInChain.getClass().isAssignableFrom(QueryBusDispatcher.class)) {
                 throw new RuntimeException(
                         "The last middleware of the chain must always be the one dispatching to handlers.");
             }
         }
+
     }
-
-
 }

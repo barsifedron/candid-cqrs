@@ -33,7 +33,8 @@ public interface DomainEventBusMiddleware {
      */
     default DomainEventBusMiddleware decorate(DomainEventBusMiddleware middleware) {
         DomainEventBusMiddleware thisMiddleware = this;
-        DomainEventBusMiddleware decoratedDomainEventBusMiddleware = (command, next) -> thisMiddleware.dispatch(command, middleware.decorate(next));
+        DomainEventBusMiddleware decoratedDomainEventBusMiddleware = (command, next) -> thisMiddleware
+                .dispatch(command, middleware.decorate(next));
         return decoratedDomainEventBusMiddleware;
     }
 
@@ -41,23 +42,49 @@ public interface DomainEventBusMiddleware {
         return Chain.manyIntoADomainEventBus(Arrays.asList(middlewares));
     }
 
-    /**
-     * Creates a domain events bus from a list of middleware, wrapping them recursively into each others.
-     * The "last" middleware called must ALWAYS be the dispatcher and, contrarily to the others,
-     * will not forward the command but finally handle it to the command handlers.
-     * Hence the last Chain built with "null".
-     */
+    static DomainEventBusMiddleware chainManyIntoADomainEventBusMiddleware(DomainEventBusMiddleware... middlewares) {
+        return Chain.manyIntoADomainEventBusMiddleware(Arrays.asList(middlewares));
+    }
+
     class Chain {
 
+        /**
+         * Creates a domain events bus from a list of middleware, wrapping them recursively into each others.
+         * The "last" middleware called should always be the dispatcher and, contrarily to the others,
+         * will not forward the command but finally handle it to the command handlers.
+         * Hence the last Chain built with "null".
+         */
         static DomainEventBus manyIntoADomainEventBus(List<DomainEventBusMiddleware> middlewares) {
-            validate(middlewares);
-            if (middlewares.size() == 1) {
-                return middlewares.get(0).decorate((DomainEventBus) null);
-            }
-            return middlewares.get(0).decorate(manyIntoADomainEventBus(middlewares.subList(1, middlewares.size())));
+
+            validateMiddlewares(middlewares);
+            validateLastMiddlewareIsDispatcher(middlewares);
+            DomainEventBusMiddleware compositeMiddleware = manyIntoADomainEventBusMiddleware(middlewares);
+            return compositeMiddleware.decorate((DomainEventBus) null);
         }
 
-        private static void validate(List<DomainEventBusMiddleware> middlewares) {
+        /**
+         * Wraps a list of middleware into each other to create a composite one.
+         */
+        static DomainEventBusMiddleware manyIntoADomainEventBusMiddleware(List<DomainEventBusMiddleware> middlewares) {
+
+            validateMiddlewares(middlewares);
+            if (middlewares.size() == 1) {
+                return middlewares.get(0);
+            }
+            return middlewares.get(0)
+                    .decorate(manyIntoADomainEventBusMiddleware(middlewares.subList(1, middlewares.size())));
+
+        }
+
+        private static void validateLastMiddlewareIsDispatcher(List<DomainEventBusMiddleware> middlewares) {
+            DomainEventBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
+            if (!lastMiddlewareInChain.getClass().isAssignableFrom(DomainEventBusDispatcher.class)) {
+                throw new RuntimeException(
+                        "The last middleware of the chain must always be the one dispatching to handlers.");
+            }
+        }
+
+        private static void validateMiddlewares(List<DomainEventBusMiddleware> middlewares) {
             if (middlewares == null) {
                 throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
             }
@@ -67,12 +94,7 @@ public interface DomainEventBusMiddleware {
             if (middlewares.stream().anyMatch(Objects::isNull)) {
                 throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
             }
-            DomainEventBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
-            if (!lastMiddlewareInChain.getClass().isAssignableFrom(DomainEventBusDispatcher.class)) {
-                throw new RuntimeException(
-                        "The last middleware of the chain must always be the one dispatching to handlers.");
-            }
         }
     }
-
 }
+
