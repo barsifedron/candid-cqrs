@@ -1,12 +1,14 @@
 package com.barsifedron.candid.cqrs.springboot.app.library.domain;
 
 import lombok.Builder;
+import lombok.ToString;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 @Builder
 @Entity
+@ToString
 public class Student {
 
     @Id

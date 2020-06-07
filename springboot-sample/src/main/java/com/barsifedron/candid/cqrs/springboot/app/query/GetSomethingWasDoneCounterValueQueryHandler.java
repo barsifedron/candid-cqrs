@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import java.util.Optional;
 
-@Component
 public class GetSomethingWasDoneCounterValueQueryHandler
         implements QueryHandler<Long, GetSomethingWasDoneCounterValueQuery> {
 

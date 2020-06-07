@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.logging.Logger;
 
-@Component
 public class SomethingWasDoneEventHandler_2 implements DomainEventHandler<SomethingWasDoneEvent> {
 
     private final static Logger LOGGER = Logger.getLogger(SomethingWasDoneEventHandler_2.class.getName());

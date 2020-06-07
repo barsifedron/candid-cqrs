@@ -1,6 +1,7 @@
 package com.barsifedron.candid.cqrs.springboot;
 
 import com.barsifedron.candid.cqrs.command.CommandResponse;
+import com.barsifedron.candid.cqrs.springboot.app.library.command.UpdateStudentNameCommand;
 import com.barsifedron.candid.cqrs.springboot.cqrs.command.CommandBusFactory;
 import com.barsifedron.candid.cqrs.springboot.cqrs.query.QueryBusFactory;
 import com.barsifedron.candid.cqrs.springboot.app.library.command.PleaseDoSomethingCommand;
@@ -37,6 +38,8 @@ public class DoSomethingController {
         CommandResponse<String> commandResponse = commandBus.simpleBus().dispatch(new PleaseDoSomethingCommand(
                 value1,
                 value2));
+
+        commandBus.simpleBus().dispatch(new UpdateStudentNameCommand());
 
         return commandResponse.result;
     }
