@@ -1,20 +1,21 @@
-package com.barsifedron.candid.cqrs.springboot.app.library.domain;
+package com.barsifedron.candid.cqrs.happy.domain;
 
 import lombok.Builder;
 import lombok.ToString;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 @Builder
 @Entity
 @ToString
+//@Table(name = "student")
 public class Student {
 
     @Id
     private long id;
     private String name;
-
 
     public Student() {
     }

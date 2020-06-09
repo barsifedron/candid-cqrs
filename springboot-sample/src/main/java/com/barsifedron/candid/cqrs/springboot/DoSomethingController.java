@@ -1,6 +1,8 @@
 package com.barsifedron.candid.cqrs.springboot;
 
 import com.barsifedron.candid.cqrs.command.CommandResponse;
+import com.barsifedron.candid.cqrs.happy.command.RegisterNewMemberCommand;
+import com.barsifedron.candid.cqrs.happy.domain.MemberId;
 import com.barsifedron.candid.cqrs.springboot.app.library.command.UpdateStudentNameCommand;
 import com.barsifedron.candid.cqrs.springboot.cqrs.command.CommandBusFactory;
 import com.barsifedron.candid.cqrs.springboot.cqrs.query.QueryBusFactory;
@@ -35,6 +37,15 @@ public class DoSomethingController {
     public String greeting(@PathVariable Integer value1, @PathVariable Integer value2,
             @RequestParam(value = "name", defaultValue = "World") String name) {
 
+//        commandBus.simpleBus().dispatch(
+//                RegisterNewMemberCommand
+//                        .builder()
+//                        .firstname("the")
+//                        .surname("first")
+//                        .email("the.first@email.com")
+//                        .memberId(new MemberId().id())
+//                        .build()
+//        );
         CommandResponse<String> commandResponse = commandBus.simpleBus().dispatch(new PleaseDoSomethingCommand(
                 value1,
                 value2));

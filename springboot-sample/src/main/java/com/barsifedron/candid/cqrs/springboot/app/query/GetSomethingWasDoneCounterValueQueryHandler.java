@@ -1,32 +1,25 @@
 package com.barsifedron.candid.cqrs.springboot.app.query;
 
+import com.barsifedron.candid.cqrs.happy.domain.Member;
+import com.barsifedron.candid.cqrs.happy.domain.QMember;
+import com.barsifedron.candid.cqrs.happy.domain.QStudent;
 import com.barsifedron.candid.cqrs.query.QueryHandler;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.QStudent;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.Student;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.StudentRepository;
 import com.barsifedron.candid.cqrs.springboot.app.library.domain.ThingsDoneCounter;
-import com.querydsl.core.QueryFactory;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.util.Optional;
+import java.util.List;
 
 public class GetSomethingWasDoneCounterValueQueryHandler
         implements QueryHandler<Long, GetSomethingWasDoneCounterValueQuery> {
 
     private final JPAQueryFactory jpaQueryFactory;
-    StudentRepository studentRepository;
 
     private final EntityManager entityManager;
 
     @Autowired
-    public GetSomethingWasDoneCounterValueQueryHandler(
-            StudentRepository studentRepository, EntityManager entityManager) {
-        this.studentRepository = studentRepository;
+    public GetSomethingWasDoneCounterValueQueryHandler( EntityManager entityManager) {
         this.entityManager = entityManager;
         jpaQueryFactory = new JPAQueryFactory(entityManager);
     }
@@ -47,8 +40,12 @@ public class GetSomethingWasDoneCounterValueQueryHandler
 
         System.out.println("entityManager = " + entityManager);
 
-        Optional<Student> byId = studentRepository.findById(Long.valueOf("1"));
-        System.out.println("byId = " + byId);
+        List<Member> members = jpaQueryFactory
+                .select(QMember.member)
+                .from(QMember.member)
+                .fetch();
+        System.out.println("members = " + members);
+
         return new ThingsDoneCounter().value();
     }
 

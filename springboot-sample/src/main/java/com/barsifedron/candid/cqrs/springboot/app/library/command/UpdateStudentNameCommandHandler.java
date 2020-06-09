@@ -3,11 +3,9 @@ package com.barsifedron.candid.cqrs.springboot.app.library.command;
 import com.barsifedron.candid.cqrs.command.CommandHandler;
 import com.barsifedron.candid.cqrs.command.CommandResponse;
 import com.barsifedron.candid.cqrs.command.NoResult;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.QStudent;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.Student;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.StudentRepository;
+import com.barsifedron.candid.cqrs.happy.domain.QStudent;
+import com.barsifedron.candid.cqrs.happy.domain.Student;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import org.springframework.stereotype.Component;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -17,14 +15,11 @@ import java.util.List;
 public class UpdateStudentNameCommandHandler implements CommandHandler<NoResult, UpdateStudentNameCommand> {
 
 
-    final StudentRepository studentRepository;
     final EntityManager entityManager;
 
     @Inject
     public UpdateStudentNameCommandHandler(
-            StudentRepository studentRepository,
             EntityManager entityManager) {
-        this.studentRepository = studentRepository;
         this.entityManager = entityManager;
     }
 

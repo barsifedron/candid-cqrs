@@ -1,9 +1,7 @@
 package com.barsifedron.candid.cqrs.springboot.app.library.infrastructure;
 
 import com.barsifedron.candid.cqrs.springboot.app.library.domain.MyStudentRepository;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.Student;
-import com.barsifedron.candid.cqrs.springboot.app.library.domain.StudentRepository;
-import org.springframework.stereotype.Component;
+import com.barsifedron.candid.cqrs.happy.domain.Student;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -20,7 +18,7 @@ public class HibernateStudentRepository implements MyStudentRepository {
     }
 
     @Override
-    @Transactional
+//    @Transactional
     public void save(Student student) {
 
         entityManager.persist(student);
