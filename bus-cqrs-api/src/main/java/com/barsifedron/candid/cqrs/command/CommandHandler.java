@@ -1,5 +1,7 @@
 package com.barsifedron.candid.cqrs.command;
 
+import java.lang.reflect.ParameterizedType;
+
 /**
  * Will handle a command and (optionally) return a  result after processing
  */
