@@ -1,0 +1,83 @@
+plugins {
+    id 'java'
+//    id 'org.springframework.boot' version '2.2.0.RELEASE'
+//    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+}
+
+group = 'com.barsifedron.candid.cqrs'
+version = '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation project(":bus-cqrs-api")
+//    implementation project(":cqrs-utils")
+//    implementation project(":cqrs-spring-utils")
+
+//    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    compileOnly 'com.querydsl:querydsl-apt:4.1.3'
+    compileOnly 'com.fasterxml.jackson.core:jackson-annotations:2.10.0'
+    compileOnly 'com.fasterxml.jackson.core:jackson-core:2.10.0'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.10.0'
+//    runtimeOnly 'com.h2database:h2'
+
+//    runtimeOnly 'mysql:mysql-connector-java'
+
+    compile "com.querydsl:querydsl-root:4.1.3"
+    compile "com.querydsl:querydsl-jpa:4.1.3"
+    compile "com.querydsl:querydsl-apt:4.1.3:jpa"
+
+
+    compile 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'com.querydsl:querydsl-apt:4.1.3:jpa'
+
+    // needed for query dsl processor to work : https://github.com/querydsl/querydsl/issues/599#issuecomment-480546623
+    annotationProcessor 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
+
+//    annotationProcessor("org.springframework.boot:spring-boot-starter-data-jpa")
+
+//    compile 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
+//    compile "org.springframework.boot:spring-boot-starter-web"
+//    testCompile 'org.springframework.boot:spring-boot-starter-test'
+//    testCompile 'com.jayway.jsonpath:json-path'
+
+
+
+//
+//
+//    implementation project(":bus-cqrs-api")
+//    implementation project(":cqrs-utils")
+//    implementation project(":cqrs-spring-utils")
+//
+//    compileOnly 'org.projectlombok:lombok'
+//    compileOnly 'com.querydsl:querydsl-apt'
+//
+//    compile "com.querydsl:querydsl-root:4.1.3"
+//    compile "com.querydsl:querydsl-jpa:4.1.3"
+//
+//    annotationProcessor 'com.querydsl:querydsl-apt:4.1.3:jpa'
+//    annotationProcessor 'org.projectlombok:lombok'
+//
+//    compile 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
+    compile "javax.inject:javax.inject:1"
+    // validation
+    compile "javax.validation:validation-api:2.0.0.Final"
+    compile "org.hibernate.validator:hibernate-validator:6.0.2.Final"
+    annotationProcessor "org.hibernate.validator:hibernate-validator-annotation-processor:6.0.2.Final"
+    compile "javax.el:javax.el-api:3.0.0"
+    compile "org.glassfish.web:javax.el:2.2.6"
+
+}
+test {
+    useJUnitPlatform()
+}
+

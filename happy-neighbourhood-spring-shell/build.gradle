@@ -1,0 +1,47 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.0.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+}
+
+group = 'com.barsifedron.candid.cqrs'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation project(":bus-cqrs-api")
+//    implementation project(":cqrs-utils")
+    implementation project(":cqrs-spring-utils")
+    implementation project(":happy-neighbourhood-core")
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    compileOnly 'org.projectlombok:lombok'
+    compileOnly 'com.querydsl:querydsl-apt'
+    runtimeOnly 'com.h2database:h2'
+
+    runtimeOnly 'mysql:mysql-connector-java'
+
+    compile "com.querydsl:querydsl-root:4.1.3"
+    compile "com.querydsl:querydsl-jpa:4.1.3"
+
+    annotationProcessor 'com.querydsl:querydsl-apt:4.1.3:jpa'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    annotationProcessor("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    compile 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
+    compile "org.springframework.boot:spring-boot-starter-web"
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+    testCompile 'com.jayway.jsonpath:json-path'
+
+}
+
+test {
+    useJUnitPlatform()
+}
