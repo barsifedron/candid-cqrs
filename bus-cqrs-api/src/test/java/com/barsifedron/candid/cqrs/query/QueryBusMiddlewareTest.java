@@ -1,7 +1,7 @@
 package com.barsifedron.candid.cqrs.query;
 
 import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class QueryBusMiddlewareTest {
 
@@ -70,43 +71,57 @@ public class QueryBusMiddlewareTest {
                 logs.stream().collect(Collectors.joining("\n")));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        QueryBusMiddleware.chainManyIntoAQueryBus();
-    }
 
-    @Test(expected = RuntimeException.class)
-    public void shouldFailINoDispatcherMiddleware() {
-        QueryBusMiddleware.chainManyIntoAQueryBus(new FirstTestMiddleware());
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        QueryBusMiddleware.chainManyIntoAQueryBus(
-                new FirstTestMiddleware(),
-                new QueryBusDispatcher(new HashSet<>()),
-                new SecondTestMiddleware()
+        assertThrows(
+                RuntimeException.class,
+                () -> QueryBusMiddleware.chainManyIntoAQueryBus()
         );
+
     }
 
+    @Test
+    public void shouldFailINoDispatcherMiddleware() {
+        assertThrows(
+                RuntimeException.class,
+                () -> QueryBusMiddleware.chainManyIntoAQueryBus(new FirstTestMiddleware()));
+    }
 
-    @Test(expected = RuntimeException.class)
+    @Test
+    public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    QueryBusMiddleware.chainManyIntoAQueryBus(
+                            new FirstTestMiddleware(),
+                            new QueryBusDispatcher(new HashSet<>()),
+                            new SecondTestMiddleware());
+                });
+    }
+
+    @Test
     public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
-        QueryBusMiddleware.chainManyIntoAQueryBus(
-                new FirstTestMiddleware(),
-                new SecondTestMiddleware(),
-                null,
-                new QueryBusDispatcher(new HashSet<>()));
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    QueryBusMiddleware.chainManyIntoAQueryBus(
+                            new FirstTestMiddleware(),
+                            new SecondTestMiddleware(),
+                            null,
+                            new QueryBusDispatcher(new HashSet<>()));
+                });
     }
 
-
-    @Test(expected = QueryBusDispatcher.QueryHandlerNotFoundException.class)
+    @Test
     public void shouldFailToProcessQuerysWhenNoRightHandler() {
         QueryBus chain = QueryBusMiddleware.chainManyIntoAQueryBus(
                 new FirstTestMiddleware(),
                 new SecondTestMiddleware(),
                 new QueryBusDispatcher(new HashSet<>()));
-        chain.dispatch(new ReturnTwoQuery());
+        assertThrows(
+                QueryBusDispatcher.QueryHandlerNotFoundException.class,
+                () -> chain.dispatch(new ReturnTwoQuery()));
     }
 
     @Test
@@ -118,7 +133,6 @@ public class QueryBusMiddlewareTest {
         Integer response = chain.dispatch(new ReturnTwoQuery());
         assertEquals(Integer.valueOf(2), response);
     }
-
 
     static class FirstTestMiddleware implements QueryBusMiddleware {
 

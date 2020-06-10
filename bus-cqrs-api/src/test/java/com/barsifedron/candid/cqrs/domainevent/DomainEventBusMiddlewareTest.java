@@ -1,8 +1,7 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
-
 import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,10 +12,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toSet;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class DomainEventBusMiddlewareTest {
-
 
     @Test
     public void canDecorateADomainEventBusOrADomainEventMiddleware() {
@@ -38,7 +37,6 @@ public class DomainEventBusMiddlewareTest {
                 logs.add("\tSecond middleware");
                 next.dispatch(domainEvent);
                 logs.add("\tSecond middleware");
-
             }
         };
 
@@ -46,7 +44,7 @@ public class DomainEventBusMiddlewareTest {
             @Override
             public void dispatch(DomainEvent domainEvent) {
                 logs.add("\t\tDecorated bus execution.");
-                 new DomainEventBusDispatcher(new NothingToDoDomainEventHandler()).dispatch(domainEvent, null);
+                new DomainEventBusDispatcher(new NothingToDoDomainEventHandler()).dispatch(domainEvent, null);
             }
         };
 
@@ -74,36 +72,45 @@ public class DomainEventBusMiddlewareTest {
                 logs.stream().collect(Collectors.joining("\n")));
     }
 
-
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        DomainEventBusMiddleware.chainManyIntoADomainEventBus();
+        assertThrows(
+                RuntimeException.class,
+                () -> DomainEventBusMiddleware.chainManyIntoADomainEventBus());
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailINoDispatcherMiddleware() {
-        DomainEventBusMiddleware.chainManyIntoADomainEventBus(new FirstTestMiddleware());
+        assertThrows(
+                RuntimeException.class,
+                () -> DomainEventBusMiddleware.chainManyIntoADomainEventBus(new FirstTestMiddleware()));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        DomainEventBusMiddleware.chainManyIntoADomainEventBus(
-                new FirstTestMiddleware(),
-                new DomainEventBusDispatcher(new HashSet<>()),
-                new SecondTestMiddleware()
-        );
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    DomainEventBusMiddleware.chainManyIntoADomainEventBus(
+                            new FirstTestMiddleware(),
+                            new DomainEventBusDispatcher(new HashSet<>()),
+                            new SecondTestMiddleware()
+                    );
+                });
     }
 
-
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
-        DomainEventBusMiddleware.chainManyIntoADomainEventBus(
-                new FirstTestMiddleware(),
-                new SecondTestMiddleware(),
-                null,
-                new DomainEventBusDispatcher(new HashSet<>()));
+        assertThrows(
+                RuntimeException.class,
+                () -> {
+                    DomainEventBusMiddleware.chainManyIntoADomainEventBus(
+                            new FirstTestMiddleware(),
+                            new SecondTestMiddleware(),
+                            null,
+                            new DomainEventBusDispatcher(new HashSet<>()));
+                });
     }
-
 
     @Test
     public void shouldProcessDomainEventsWhenRightHandler() {
@@ -114,7 +121,6 @@ public class DomainEventBusMiddlewareTest {
                 new DomainEventBusDispatcher(handlers));
         chain.dispatch(new NothingToDoEvent());
     }
-
 
     static class FirstTestMiddleware implements DomainEventBusMiddleware {
 

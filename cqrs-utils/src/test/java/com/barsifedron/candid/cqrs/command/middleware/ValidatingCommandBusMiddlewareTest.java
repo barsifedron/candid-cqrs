@@ -1,7 +1,8 @@
 package com.barsifedron.candid.cqrs.command.middleware;
 
 import com.barsifedron.candid.cqrs.command.*;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
@@ -15,40 +16,53 @@ public class ValidatingCommandBusMiddlewareTest {
     public ValidatingCommandBusMiddlewareTest() {
     }
 
-    @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
+    @Test
     public void shouldFailIfNameIsNull() {
-        CommandBus bus =  CommandBusMiddleware.chainManyIntoACommandBus(
+        CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand(null, 21);
-        bus.dispatch(testCommand);
+
+        Assertions.assertThrows(
+                ValidatingCommandBusMiddleware.IllegalCommandException.class,
+                () -> bus.dispatch(testCommand));
     }
 
-    @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
+    @Test
     public void shouldFailIfAgeIsNegative() {
         CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack Malone", -9);
-        bus.dispatch(testCommand);
+
+        Assertions.assertThrows(
+                ValidatingCommandBusMiddleware.IllegalCommandException.class,
+                () -> bus.dispatch(testCommand));
     }
 
-    @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
+    @Test
     public void shouldFailIfMinor() {
         CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack malone", 16);
-        bus.dispatch(testCommand);
+
+        Assertions.assertThrows(
+                ValidatingCommandBusMiddleware.IllegalCommandException.class,
+                () -> bus.dispatch(testCommand));
     }
 
-    @Test(expected = ValidatingCommandBusMiddleware.IllegalCommandException.class)
+    @Test
     public void shouldFailIfVotedForBrexit() {
         CommandBus bus = CommandBusMiddleware.chainManyIntoACommandBus(
                 new ValidatingCommandBusMiddleware(),
                 new CommandBusDispatcher(new HashSet<>()));
         TestCommand testCommand = new TestCommand("jack malone", 70);
-        bus.dispatch(testCommand);
+
+        Assertions.assertThrows(
+                ValidatingCommandBusMiddleware.IllegalCommandException.class,
+                () ->
+                        bus.dispatch(testCommand));
     }
 
     @Test

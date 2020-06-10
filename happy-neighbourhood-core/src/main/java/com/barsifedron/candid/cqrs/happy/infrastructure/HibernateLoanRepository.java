@@ -36,12 +36,12 @@ public class HibernateLoanRepository implements LoanRepository {
     }
 
     @Override
-    public List<Loan> forMember(MemberId memberId, Loan.STATUS status) {
+    public List<Loan> forMember(MemberId memberId, Loan.STATUS... statuses) {
         List<Loan> fetch = new JPAQueryFactory(entityManager)
                 .select(QLoan.loan)
                 .from(QLoan.loan)
                 .where(
-                        QLoan.loan.status.eq(status),
+                        QLoan.loan.status.in(statuses),
                         QLoan.loan.memberId.eq(memberId))
                 .fetch();
         System.out.println("fetch = " + fetch);
@@ -49,13 +49,21 @@ public class HibernateLoanRepository implements LoanRepository {
     }
 
     @Override
-    public List<Loan> forItem(ItemId itemId, Loan.STATUS status) {
+    public List<Loan> forItem(ItemId itemId, Loan.STATUS... statuses) {
         return new JPAQueryFactory(entityManager)
                 .select(QLoan.loan)
                 .from(QLoan.loan)
                 .where(
-                        QLoan.loan.status.eq(status),
+                        QLoan.loan.status.in(statuses),
                         QLoan.loan.itemId.eq(itemId))
+                .fetch();
+    }
+
+    @Override
+    public List<Loan> all() {
+        return new JPAQueryFactory(entityManager)
+                .select(QLoan.loan)
+                .from(QLoan.loan)
                 .fetch();
     }
 }

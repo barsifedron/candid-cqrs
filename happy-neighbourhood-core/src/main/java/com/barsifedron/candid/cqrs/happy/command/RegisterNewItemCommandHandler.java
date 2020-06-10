@@ -49,8 +49,8 @@ public class RegisterNewItemCommandHandler implements CommandHandler<ItemId, Reg
     }
 
     public static class ItemIdAlreadyInUseException extends RuntimeException {
-        public ItemIdAlreadyInUseException(String memberId) {
-            super(String.format("The member id %s is already assigned to another user.", memberId));
+        public ItemIdAlreadyInUseException(String itemId) {
+            super(String.format("The item id %s is already assigned to another user.", itemId));
         }
     }
 

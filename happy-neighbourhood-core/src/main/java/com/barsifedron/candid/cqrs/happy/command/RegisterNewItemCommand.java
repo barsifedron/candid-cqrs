@@ -1,12 +1,13 @@
 package com.barsifedron.candid.cqrs.happy.command;
 
 import com.barsifedron.candid.cqrs.command.Command;
-import com.barsifedron.candid.cqrs.command.CommandResultToLog;
-import com.barsifedron.candid.cqrs.command.CommandToLog;
 import com.barsifedron.candid.cqrs.happy.domain.ItemId;
+import com.barsifedron.candid.cqrs.happy.utils.cqrs.command.CommandResultToLog;
+import com.barsifedron.candid.cqrs.happy.utils.cqrs.command.CommandToLog;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 import javax.validation.constraints.Max;
@@ -17,25 +18,26 @@ import java.math.BigDecimal;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
 @EqualsAndHashCode
 @ToString
 public class RegisterNewItemCommand implements Command<ItemId>, CommandToLog, CommandResultToLog {
 
     @NotEmpty
-    public final String id;
+    public String id;
 
     @NotEmpty
-    public final String name;
+    public String name;
 
     @NotNull
     @Min(0)
     @Max(15)
-    public final Integer maximumLoanPeriod;
+    public Integer maximumLoanPeriod;
 
     @NotNull
     @Min(0)
-    public final BigDecimal dailyRate;
+    public BigDecimal dailyRate;
 
     @Min(0)
-    public final BigDecimal dailyFineWhenLateReturn;
+    public BigDecimal dailyFineWhenLateReturn;
 }

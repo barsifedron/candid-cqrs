@@ -16,19 +16,19 @@ import java.util.UUID;
 @Access(AccessType.FIELD)
 public class LoanId implements Serializable {
 
-    @Column(name = "id", nullable = false)
-    private final String id;
+    @Column(name = "id", nullable = false, unique = true)
+    private final String loanId;
 
     public LoanId() {
         this(UUID.randomUUID().toString());
     }
 
-    public LoanId(String id) {
-        this.id = id;
+    public LoanId(String loanId) {
+        this.loanId = loanId;
     }
 
-    public String id() {
-        return id;
+    public String asString() {
+        return loanId;
     }
 
 }

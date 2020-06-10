@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.Access;
 import javax.persistence.AccessType;
@@ -20,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Access(AccessType.FIELD)
 @NoArgsConstructor
@@ -32,15 +34,15 @@ public class Loan {
 
     @Embedded
     @EmbeddedId
-    @AttributeOverride(name = "id", column = @Column(updatable = false))
+    @AttributeOverride(name = "loanId", column = @Column(updatable = false))
     private LoanId id;
 
     @Embedded
-    @AttributeOverride(name = "id", column = @Column(insertable = false, updatable = false))
+    @AttributeOverride(name = "id", column = @Column(name = "itemid"))
     private ItemId itemId;
 
     @Embedded
-    @AttributeOverride(name = "id", column = @Column(insertable = false, updatable = false))
+    @AttributeOverride(name = "id", column = @Column(name = "memberid"))
     private MemberId memberId;
 
     @Column(name = "borrowedon")
@@ -61,12 +63,16 @@ public class Loan {
     @Column(name = "status")
     private STATUS status;
 
+    @Column(name = "bill")
+    @Type(type="text")
+    private String bill;
+
     public boolean hasItemId(ItemId candidate) {
         return Objects.equals(itemId, candidate);
     }
 
-    public boolean hasStatus(STATUS candidate) {
-        return status == candidate;
+    public boolean hasStatusIn(STATUS... candidates) {
+        return Stream.of(candidates).anyMatch(candidate -> Objects.equals(status, candidate));
     }
 
     public LoanId id() {
@@ -81,13 +87,50 @@ public class Loan {
         return borrowedOn.equals(candidate);
     }
 
+    public void returnItem() {
+        effectiveReturnOn = LocalDate.now();
+        status = STATUS.RETURNED;
+
+        // calculate the bill
+        LoanCost loanCost = loanCost();
+        bill = loanCost.cost().toString() + "\n" + loanCost.trace();
+    }
+
+    public MemberId memberId() {
+        return memberId;
+    }
+
+    public LocalDate boorowedOn() {
+        return borrowedOn;
+    }
+
+    public LocalDate effectiveReturnOn() {
+        return effectiveReturnOn;
+    }
+
+    public BigDecimal dailyFineWhenLate() {
+        return dailyFineWhenLate;
+    }
+
+    public LocalDate expectedReturnOn() {
+        return effectiveReturnOn;
+    }
+
+    public BigDecimal regularDailyRate() {
+        return regularDailyRate;
+    }
+
+    public String bill() {
+        return bill;
+    }
+
     public enum STATUS {
         IN_PROGRESS, RETURNED, MANUALLY_CLOSED
     }
 
     public LoanCost loanCost() {
 
-        if (effectiveReturnOn == null && LocalDate.now().isBefore(borrowedOn)) {
+        if (effectiveReturnOn == null) {
             throw new RuntimeException("Can not calculate loan cost in the current state");
         }
 

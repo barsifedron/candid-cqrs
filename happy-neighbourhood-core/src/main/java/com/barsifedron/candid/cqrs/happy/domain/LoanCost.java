@@ -37,6 +37,10 @@ public class LoanCost {
         return new LoanCost(summ, mergedTrace);
     }
 
+    public BigDecimal cost() {
+        return cost;
+    }
+
     public String trace() {
         return trace;
     }

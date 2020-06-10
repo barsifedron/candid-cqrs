@@ -7,8 +7,7 @@ import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventHandler;
 import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
@@ -17,7 +16,9 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.times;
 
 public class CommandBusMiddlewareTest {
@@ -82,36 +83,49 @@ public class CommandBusMiddlewareTest {
                 logs.stream().collect(Collectors.joining("\n")));
     }
 
-
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailToConstructEmptyMiddlewareChain() {
-        CommandBusMiddleware.chainManyIntoACommandBus();
+
+        assertThrows(
+                RuntimeException.class,
+                () ->
+                        CommandBusMiddleware.chainManyIntoACommandBus()
+        )
+
+        ;
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailIfNoDispatcherMiddleware() {
-        CommandBusMiddleware.chainManyIntoACommandBus(new FirstTestMiddleware());
+        assertThrows(
+                RuntimeException.class,
+                () -> CommandBusMiddleware.chainManyIntoACommandBus(new FirstTestMiddleware()));
     }
 
-    @Test(expected = RuntimeException.class)
+    @Test
     public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        CommandBusMiddleware.chainManyIntoACommandBus(
-                new FirstTestMiddleware(),
-                new CommandBusDispatcher(new HashSet<>()),
-                new SecondTestMiddleware()
-        );
+        assertThrows(
+                RuntimeException.class,
+                () ->
+
+                        CommandBusMiddleware.chainManyIntoACommandBus(
+                                new FirstTestMiddleware(),
+                                new CommandBusDispatcher(new HashSet<>()),
+                                new SecondTestMiddleware()
+                        ));
     }
 
-    @Test(expected = CommandBusDispatcher.CommandHandlerNotFoundException.class)
+    @Test
     public void shouldFailToProcessCommandsWhenNoMatchingHandler() {
-        CommandBusMiddleware
-                .chainManyIntoACommandBus(
-                        new FirstTestMiddleware(),
-                        new SecondTestMiddleware(),
-                        new CommandBusDispatcher(new HashSet<>()))
-                .dispatch(new CommandThatProducesThreeEvents());
+        assertThrows(
+                CommandBusDispatcher.CommandHandlerNotFoundException.class,
+                () -> CommandBusMiddleware
+                        .chainManyIntoACommandBus(
+                                new FirstTestMiddleware(),
+                                new SecondTestMiddleware(),
+                                new CommandBusDispatcher(new HashSet<>()))
+                        .dispatch(new CommandThatProducesThreeEvents()));
     }
-
 
     @Test
     public void canDispatchToEventBus() {
@@ -155,12 +169,11 @@ public class CommandBusMiddlewareTest {
         commandBus.dispatch(new CommandThatProducesThreeEvents());
 
         // Then
-        Assert.assertTrue(firstEventHandler.receivedEvent);
-        Assert.assertTrue(secondEventHandler.receivedEvent);
-        Assert.assertTrue(thirdEventHandler.receivedEvent);
+        assertTrue(firstEventHandler.receivedEvent);
+        assertTrue(secondEventHandler.receivedEvent);
+        assertTrue(thirdEventHandler.receivedEvent);
 
     }
-
 
     static class FirstTestMiddleware implements CommandBusMiddleware {
 

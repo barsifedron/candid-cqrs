@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -25,13 +26,16 @@ public interface LoanRepository {
 
     void add(Loan loan);
 
-    List<Loan> forMember(MemberId memberId, Loan.STATUS status);
+    List<Loan> forMember(MemberId memberId, Loan.STATUS... statuses);
 
-    List<Loan> forItem(ItemId itemId, Loan.STATUS status);
+    List<Loan> forItem(ItemId itemId, Loan.STATUS... statuses);
 
     default void add(Loan... loans) {
         Stream.of(loans).forEach(this::add);
     }
+
+    // to delet
+    List<Loan> all();
 
     public static class InMemory implements LoanRepository {
 
@@ -58,24 +62,29 @@ public interface LoanRepository {
         }
 
         @Override
-        public List<Loan> forMember(MemberId memberId, Loan.STATUS status) {
+        public List<Loan> forMember(MemberId memberId, Loan.STATUS... statuses) {
             return map
                     .values()
                     .stream()
                     .filter(loan -> loan.hasMemberId(memberId))
-                    .filter(loan -> loan.hasStatus(status))
+                    .filter(loan -> loan.hasStatusIn(statuses))
                     .collect(toList());
 
         }
 
         @Override
-        public List<Loan> forItem(ItemId itemId, Loan.STATUS status) {
+        public List<Loan> forItem(ItemId itemId, Loan.STATUS... statuses) {
             return map
                     .values()
                     .stream()
                     .filter(loan -> loan.hasItemId(itemId))
-                    .filter(loan -> loan.hasStatus(status))
+                    .filter(loan -> loan.hasStatusIn(statuses))
                     .collect(toList());
+        }
+
+        @Override
+        public List<Loan> all() {
+            return map.values().stream().collect(Collectors.toList());
         }
     }
 

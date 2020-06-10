@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 import javax.annotation.Generated;
 import javax.persistence.Access;
@@ -28,7 +29,8 @@ public class Email {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Integer id;
-    @Column(name = "body", length = 1024)
+    @Column(name = "body")
+    @Type(type="text")
     private String body;
     @Column(name = "email")
     private String email;
