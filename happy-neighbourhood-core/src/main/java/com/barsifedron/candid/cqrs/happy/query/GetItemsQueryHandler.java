@@ -1,6 +1,7 @@
 package com.barsifedron.candid.cqrs.happy.query;
 
 import com.barsifedron.candid.cqrs.happy.domain.Item;
+import com.barsifedron.candid.cqrs.happy.domain.Loan;
 import com.barsifedron.candid.cqrs.happy.domain.Member;
 import com.barsifedron.candid.cqrs.happy.domain.QItem;
 import com.barsifedron.candid.cqrs.happy.domain.QLoan;
@@ -49,11 +50,14 @@ public class GetItemQueryHandler implements QueryHandler<GetItemQueryHandler.Ite
                 .select(
                         Projections.constructor(
                                 LoanDto.class,
+                                QLoan.loan.id.loanId,
+                                QMember.member.memberId.id,
                                 QMember.member.firstname,
                                 QMember.member.surname,
                                 QMember.member.email,
                                 QLoan.loan.borrowedOn,
                                 QLoan.loan.effectiveReturnOn,
+                                QLoan.loan.status,
                                 QLoan.loan.bill)
                 )
                 .from(QMember.member, QLoan.loan, QItem.item)
@@ -96,11 +100,14 @@ public class GetItemQueryHandler implements QueryHandler<GetItemQueryHandler.Ite
     @AllArgsConstructor
     public static class LoanDto {
 
+        public String loanId;
+        public String memberId;
         public String memberFirstname;
         public String memberSurname;
         public String email;
         public LocalDate borrowedOn;
         public LocalDate returnedOn;
+        public Loan.STATUS loanStatus;
         public String bill;
     }
 }
