@@ -38,12 +38,13 @@ public class ItemReturnedDomainEventHandler implements DomainEventHandler<ItemRe
                 .status(Email.EMAIL_STATUS.TO_BE_SENT)
                 .build();
 
-        System.out.println("email = " + email);
 
         /**
          * We store the email to be sent. Another process will manage retrieval and actually sending of these
          */
         emailRepository.add(email);
+        System.out.println("email = " + email);
+
     }
 
     @Override
