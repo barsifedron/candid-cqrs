@@ -43,7 +43,6 @@ public class ItemReturnedDomainEventHandler implements DomainEventHandler<ItemRe
          * We store the email to be sent. Another process will manage retrieval and actually sending of these
          */
         emailRepository.add(email);
-        System.out.println("email = " + email);
 
     }
 

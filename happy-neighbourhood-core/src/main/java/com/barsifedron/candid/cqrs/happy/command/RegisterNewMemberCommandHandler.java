@@ -45,8 +45,6 @@ public class RegisterNewMemberCommandHandler implements CommandHandler<MemberId,
 
         members.add(newMember);
 
-        System.out.println("newMember.memberId() = " + newMember.memberId());
-
         NewMemberRegisteredDomainEvent domainEvent = NewMemberRegisteredDomainEvent
                 .builder()
                 .email(command.email)

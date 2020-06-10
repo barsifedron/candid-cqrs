@@ -1,5 +1,6 @@
 package com.barsifedron.candid.cqrs.happy.query;
 
+import com.barsifedron.candid.cqrs.happy.domain.Loan;
 import com.barsifedron.candid.cqrs.happy.domain.Member;
 import com.barsifedron.candid.cqrs.happy.domain.MemberId;
 import com.barsifedron.candid.cqrs.happy.domain.QItem;
@@ -39,24 +40,6 @@ public class GetMemberQueryHandler implements QueryHandler<GetMemberQueryHandler
     @Transactional
     public MemberDto handle(GetMemberQuery query) {
 
-        System.out.println("query = " + query.toString());
-        System.out.println("query.memberId = " + query.memberId);
-
-        List<Member> fetch = new JPAQueryFactory(entityManager)
-                .select(
-                        QMember.member
-                )
-                .from(QMember.member)
-                .fetch();
-        System.out.println("fetch = " + fetch);
-
-        Member member = new JPAQueryFactory(entityManager)
-                .select(QMember.member)
-                .from(QMember.member)
-                .where(QMember.member.memberId.id.eq(query.memberId))
-                .fetchOne();
-        System.out.println("member = " + member);
-
         Tuple tuple = new JPAQueryFactory(entityManager)
                 .select(
                         QMember.member.memberId.id,
@@ -66,26 +49,25 @@ public class GetMemberQueryHandler implements QueryHandler<GetMemberQueryHandler
                         QMember.member.registeredOn
                 )
                 .from(QMember.member)
-                //                .where(QMember.member.memberId.id.eq(fetch.get(0).memberId().id()))
                 .where(QMember.member.memberId.id.eq(query.memberId))
                 .fetchOne();
-
-        System.out.println("tuple = " + tuple);
 
         List<LoanDto> loanHistory = new JPAQueryFactory(entityManager)
 
                 .select(
                         Projections.constructor(
                                 LoanDto.class,
+                                QLoan.loan.id.loanId,
+                                QItem.item.id.id,
                                 QItem.item.name,
                                 QLoan.loan.borrowedOn,
                                 QLoan.loan.effectiveReturnOn,
+                                QLoan.loan.status,
                                 QLoan.loan.bill)
                 )
                 .from(QMember.member, QLoan.loan, QItem.item)
                 .where(
                         QItem.item.id.eq(QLoan.loan.itemId),
-
                         QMember.member.memberId.id.eq(query.memberId),
                         QMember.member.memberId.eq(QLoan.loan.memberId))
 
@@ -127,9 +109,12 @@ public class GetMemberQueryHandler implements QueryHandler<GetMemberQueryHandler
     @AllArgsConstructor
     public static class LoanDto {
 
+        public String loanId;
+        public String itemId;
         public String itemName;
         public LocalDate borrowedOn;
         public LocalDate returnedOn;
+        public Loan.STATUS loanStatus;
         public String bill;
     }
 }

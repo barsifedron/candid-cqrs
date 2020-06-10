@@ -15,9 +15,7 @@ public class ExceptionLoggingQueryBusMiddleware implements QueryBusMiddleware {
     @Override
     public <T> T dispatch(Query<T> query, QueryBus queryBus) {
         try {
-
             return queryBus.dispatch(query);
-
         } catch (Throwable th) {
 
             LOGGER.severe(""

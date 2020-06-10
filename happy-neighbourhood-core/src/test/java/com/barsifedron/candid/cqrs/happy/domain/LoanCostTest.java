@@ -23,9 +23,5 @@ class LoanCostTest {
                 .build();
 
         LoanCost loanCost = loan.loanCost();
-
-        System.out.println("total cost = " + loanCost.cost);
-        System.out.println("trace = " + loanCost.trace());
-
     }
 }

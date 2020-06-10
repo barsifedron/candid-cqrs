@@ -1,14 +1,15 @@
 package com.barsifedron.candid.cqrs.happy.query;
 
-import com.barsifedron.candid.cqrs.happy.domain.Item;
+import com.barsifedron.candid.cqrs.happy.domain.ItemId;
 import com.barsifedron.candid.cqrs.happy.domain.Loan;
-import com.barsifedron.candid.cqrs.happy.domain.Member;
-import com.barsifedron.candid.cqrs.happy.domain.QItem;
 import com.barsifedron.candid.cqrs.happy.domain.QLoan;
 import com.barsifedron.candid.cqrs.happy.domain.QMember;
 import com.barsifedron.candid.cqrs.query.QueryHandler;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.group.GroupBy;
+import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -16,71 +17,85 @@ import lombok.ToString;
 
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
+import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public class GetItemQueryHandler implements QueryHandler<GetItemQueryHandler.ItemDto, GetItemQuery> {
+import static com.barsifedron.candid.cqrs.happy.domain.QItem.item;
+import static com.barsifedron.candid.cqrs.happy.domain.QLoan.loan;
+import static com.barsifedron.candid.cqrs.happy.domain.QMember.member;
+import static com.querydsl.core.group.GroupBy.groupBy;
+import static com.querydsl.core.group.GroupBy.list;
+import static java.util.stream.Collectors.toList;
+
+public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHandler.ItemDto>, GetItemsQuery> {
 
     private final EntityManager entityManager;
 
     @Inject
-    public GetItemQueryHandler(EntityManager entityManager) {
+    public GetItemsQueryHandler(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
     @Override
-    public ItemDto handle(GetItemQuery query) {
+    @Transactional
+    public List<ItemDto> handle(GetItemsQuery query) {
 
-        System.out.println("query = " + query);
+        JPAQuery<Tuple> from = new JPAQueryFactory(entityManager)
+                .select(item.id, item.name, item.since)
+                .from(item);
 
-        Tuple tuple = new JPAQueryFactory(entityManager)
-                .select(
-                        QItem.item.id.id,
-                        QItem.item.name,
-                        QItem.item.since
-                )
-                .from(QItem.item)
-                .where(QItem.item.id.id.eq(query.itemId))
-                .fetchOne();
+        if (query.itemId != null) {
+            from.where(item.id.id.eq(query.itemId));
+        }
 
-        System.out.println("tuple = " + tuple);
+        List<Tuple> tuples = from.fetch();
+        List<ItemId> foundItemIds = tuples.stream().map(tuple -> tuple.get(item.id)).collect(toList());
 
-        List<LoanDto> loanHistory = new JPAQueryFactory(entityManager)
+        Map<ItemId, List<LoanDto>> itemsLoans = new JPAQueryFactory(entityManager)
 
-                .select(
-                        Projections.constructor(
-                                LoanDto.class,
-                                QLoan.loan.id.loanId,
-                                QMember.member.memberId.id,
-                                QMember.member.firstname,
-                                QMember.member.surname,
-                                QMember.member.email,
-                                QLoan.loan.borrowedOn,
-                                QLoan.loan.effectiveReturnOn,
-                                QLoan.loan.status,
-                                QLoan.loan.bill)
-                )
-                .from(QMember.member, QLoan.loan, QItem.item)
+                .from(item, loan, member)
                 .where(
-                        QItem.item.id.id.eq(query.itemId),
-                        QItem.item.id.eq(QLoan.loan.itemId),
-                        QMember.member.memberId.eq(QLoan.loan.memberId))
+                        item.id.in(foundItemIds),
+                        item.id.eq(loan.itemId),
+                        member.memberId.eq(loan.memberId))
+                .orderBy(
+                        item.since.desc(),
+                        loan.borrowedOn.desc())
+                .transform(groupBy(item.id).as(list(loanDtoProjection())));
 
-                .orderBy(QLoan.loan.borrowedOn.desc())
+        return tuples
+                .stream()
+                .map(tuple -> new ItemDto(
+                        tuple.get(item.id).id(),
+                        tuple.get(item.name),
+                        tuple.get(item.since),
+                        itemsLoans.getOrDefault(tuple.get(item.id), Collections.emptyList())))
+                .sorted((dto1, dto2) -> dto2.since.compareTo(dto1.since))
+                .collect(Collectors.toList());
 
-                .fetch();
+    }
 
-        return new ItemDto(
-                tuple.get(QItem.item.id.id),
-                tuple.get(QItem.item.name),
-                tuple.get(QItem.item.since),
-                loanHistory
-        );
+    private ConstructorExpression<LoanDto> loanDtoProjection() {
+        return Projections.constructor(
+                LoanDto.class,
+                loan.id.loanId,
+                member.memberId.id,
+                member.firstname,
+                member.surname,
+                member.email,
+                loan.borrowedOn,
+                loan.effectiveReturnOn,
+                loan.status,
+                loan.bill);
     }
 
     @Override
-    public Class<GetItemQuery> listenTo() {
-        return GetItemQuery.class;
+    public Class<GetItemsQuery> listenTo() {
+        return GetItemsQuery.class;
     }
 
     @NoArgsConstructor

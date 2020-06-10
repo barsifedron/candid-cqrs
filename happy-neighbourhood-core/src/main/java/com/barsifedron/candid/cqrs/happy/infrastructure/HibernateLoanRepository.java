@@ -44,7 +44,6 @@ public class HibernateLoanRepository implements LoanRepository {
                         QLoan.loan.status.in(statuses),
                         QLoan.loan.memberId.eq(memberId))
                 .fetch();
-        System.out.println("fetch = " + fetch);
         return fetch;
     }
 

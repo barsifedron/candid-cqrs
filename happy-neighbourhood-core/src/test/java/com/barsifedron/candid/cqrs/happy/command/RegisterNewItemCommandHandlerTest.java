@@ -4,9 +4,15 @@ import com.barsifedron.candid.cqrs.command.CommandResponse;
 import com.barsifedron.candid.cqrs.happy.domain.Item;
 import com.barsifedron.candid.cqrs.happy.domain.ItemId;
 import com.barsifedron.candid.cqrs.happy.domain.ItemsRepository;
+import com.barsifedron.candid.cqrs.happy.domain.Loan;
+import com.barsifedron.candid.cqrs.happy.domain.MemberId;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.*;
 

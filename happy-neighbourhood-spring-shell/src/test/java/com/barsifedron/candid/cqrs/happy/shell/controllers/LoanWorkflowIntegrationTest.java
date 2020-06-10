@@ -3,13 +3,8 @@ package com.barsifedron.candid.cqrs.happy.shell.controllers;
 import com.barsifedron.candid.cqrs.happy.command.BorrowItemCommand;
 import com.barsifedron.candid.cqrs.happy.command.RegisterNewItemCommand;
 import com.barsifedron.candid.cqrs.happy.command.RegisterNewMemberCommand;
-import com.barsifedron.candid.cqrs.happy.command.ReturnItemCommand;
-import com.barsifedron.candid.cqrs.happy.domain.LoanId;
-import com.barsifedron.candid.cqrs.happy.domain.MemberId;
+import com.barsifedron.candid.cqrs.happy.query.GetItemsQueryHandler;
 import com.barsifedron.candid.cqrs.happy.query.GetMemberQueryHandler;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +33,7 @@ public class LoanWorkflowIntegrationTest {
     @Test
     public void shouldCreateNewMember() throws Exception {
 
-        ResponseEntity<String> registerMemberResponse = restTemplate.postForEntity(
+        ResponseEntity<GetMemberQueryHandler.MemberDto> registerMemberResponse = restTemplate.postForEntity(
                 "http://localhost:" + port + "/members",
                 RegisterNewMemberCommand
                         .builder()
@@ -46,11 +41,11 @@ public class LoanWorkflowIntegrationTest {
                         .firstname("john")
                         .surname("malkovitch")
                         .build(),
-                String.class
+                GetMemberQueryHandler.MemberDto.class
         );
         assertThat(registerMemberResponse.getStatusCode().value()).isEqualTo(201);
 
-        ResponseEntity<String> registerItemResponse = restTemplate.postForEntity(
+        ResponseEntity<GetItemsQueryHandler.ItemDto> registerItemResponse = restTemplate.postForEntity(
                 "http://localhost:" + port + "/items",
                 RegisterNewItemCommand
                         .builder()
@@ -59,25 +54,28 @@ public class LoanWorkflowIntegrationTest {
                         .dailyFineWhenLateReturn(new BigDecimal("2.00"))
                         .maximumLoanPeriod(14)
                         .build(),
-                String.class
+                GetItemsQueryHandler.ItemDto.class
         );
         assertThat(registerItemResponse.getStatusCode().value()).isEqualTo(201);
 
+        System.out.println("registerItemResponse = " + registerItemResponse);
+        System.out.println("registerItemResponse.getBody() = " + registerItemResponse.getBody());
+
         Map<String, String> args = new HashMap<>();
-        args.put("memberId", registerMemberResponse.getBody());
+        args.put("memberId", registerMemberResponse.getBody().id);
 
         ResponseEntity<String> borrowItemResponse = restTemplate.postForEntity(
                 "http://localhost:" + port + "/members/{memberId}/loans",
                 BorrowItemCommand
                         .builder()
-                        .itemId(registerItemResponse.getBody())
+                        .itemId(registerItemResponse.getBody().id)
                         .build(),
                 String.class,
                 args);
         assertThat(borrowItemResponse.getStatusCode().value()).isEqualTo(201);
 
         args = new HashMap<>();
-        args.put("itemId", registerItemResponse.getBody());
+        args.put("itemId", registerItemResponse.getBody().id);
 
         System.out.println("args = " + args);
 

@@ -46,14 +46,21 @@ public class MembersController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<String> registerNewMember(@RequestBody RegisterNewMemberCommand command) {
+    public ResponseEntity<GetMemberQueryHandler.MemberDto> registerNewMember(
+            @RequestBody RegisterNewMemberCommand command) {
 
         CommandResponse<MemberId> commandResponse = commandBus.dispatch(command
                 .toBuilder()
                 .memberId(new MemberId().id())
                 .build());
 
-        return new ResponseEntity<>(commandResponse.result.id(), HttpStatus.CREATED);
+        GetMemberQueryHandler.MemberDto dto = queryBusFactory.simpleBus().dispatch(
+                GetMemberQuery
+                        .builder()
+                        .memberId(commandResponse.result.id())
+                        .build());
+
+        return new ResponseEntity(dto, HttpStatus.CREATED);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "{memberId}/loans")
@@ -80,14 +87,13 @@ public class MembersController {
                 GetMemberQuery
                         .builder()
                         .memberId(memberId)
-                        .build()
-        );
+                        .build());
 
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     //
-    // Spring handling of errors is really terrible
+    // Spring handling of errors is pretty bad
     //
 
     @ExceptionHandler(value = { ValidatingCommandBusMiddleware.IllegalCommandException.class })
