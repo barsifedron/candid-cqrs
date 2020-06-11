@@ -1,0 +1,87 @@
+Get a list of items :
+
+curl --location --request GET 'http://localhost:8080/items' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw '{"query":"","variables":{}}'
+
+
+
+Create a item named Shovel :
+
+curl --location --request POST 'http://localhost:8080/items' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw '{
+  
+  "name" : "Shovel",
+  "maximumLoanPeriod" : 10,
+  "dailyRate" : 1.00,
+  "dailyFineWhenLateReturn" : 1.00
+}'
+
+
+
+Retrieve a created item by its uuid :
+
+curl --location --request GET 'http://localhost:8080/items/{{item-uuid}}' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw ''
+
+
+
+Create a new member :
+
+curl --location --request POST 'http://localhost:8080/members' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw '{
+  "email" : "b.arsifedron@spam.com",
+  "firstname" : "barsifedron",
+  "surname" : "The First"
+}'
+
+
+
+Retrieve a created member by its uuid :
+
+curl --location --request GET 'http://localhost:8080/members/{{member-uuid}}' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw ''
+
+
+
+Borrow an item on behalf of a member :
+
+curl --location --request POST 'http://localhost:8080/members/{{member-uuid}}/loans' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw '{
+  "itemId" : "{{item-uuid}}}"
+}
+'
+
+
+Return an item :
+
+
+curl --location --request POST 'http://localhost:8080/items/{{item-uuid}}/return' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw ''

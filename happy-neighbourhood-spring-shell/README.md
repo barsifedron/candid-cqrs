@@ -14,6 +14,25 @@ This is obviously a small illustrating project but it does already quite a few t
 ## To run:
 ./gradlew bootRun
 
+## To test endpoints:
+
+Two ways to do so : Using postman or manually with curl.
+
+### with postman:
+
+At the project root, in a file, there is a collection of endpoints that you can import on your Postman.
+All you need to do is import this file in your postman and edit the endpoints path and body to replace :
+
+- {{member-uuid}} by the id of a member you create
+- {{item-uuid}} by the id of an item you created
+
+The file is : 
+_candid-cqrs.postman_collection.json_
+
+Postman is a really convenient utility and can be found here : https://www.postman.com/
+
+### manually with curl :
+The file _candid-cqrs-endpoints-samples-curl_ contains curl samples that you can run from your coammnd line. In the same manner as with the Postman method, you will need to replace the uuids fields based on what you create.
 
 ## Things to look at :
 

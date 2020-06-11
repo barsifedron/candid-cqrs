@@ -1,0 +1,340 @@
+{
+	"info": {
+		"_postman_id": "86e9c18a-1301-414a-ac13-cc49ceb9f5b9",
+		"name": "candid-cqrs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://localhost:8080/items",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/items",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"items"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/items",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \n  \"name\" : \"Shovel\",\n  \"maximumLoanPeriod\" : 10,\n  \"dailyRate\" : 1.00,\n  \"dailyFineWhenLateReturn\" : 1.00\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/items",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"items"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/items/{{item-uuid}}",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"itemId\" : \"59153d4a-ee9d-4619-b97b-cf0978cfa695\"\n}\n"
+				},
+				"url": {
+					"raw": "http://localhost:8080/items/{{item-uuid}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"items",
+						"{{item-uuid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/members",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					},
+					{
+						"key": "Origin",
+						"value": "https://engage.app.connections.engagelabs.io"
+					},
+					{
+						"key": "Connection",
+						"value": "keep-alive"
+					},
+					{
+						"key": "Referer",
+						"value": "https://engage.app.connections.engagelabs.io/"
+					},
+					{
+						"key": "Cookie",
+						"value": "at-platform=A423FCABF63D9D85E4D5499C3CC5BFFD"
+					},
+					{
+						"key": "DNT",
+						"value": "1"
+					},
+					{
+						"key": "X-LegalEntityId",
+						"value": "12599",
+						"type": "text"
+					},
+					{
+						"key": "X-Principal",
+						"value": "1",
+						"type": "text"
+					},
+					{
+						"key": "X-permissions",
+						"value": "personworkerproperties:delete",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"email\" : \"b.arsifedron@spam.com\",\n  \"firstname\" : \"barsifedron\",\n  \"surname\" : \"The First\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/members",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/members/{{member-uuid}}",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/members/{{member-uuid}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members",
+						"{{member-uuid}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/members/{{member-uuid}}/loans",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"itemId\" : \"{{item-uuid}}}\"\n}\n"
+				},
+				"url": {
+					"raw": "http://localhost:8080/members/{{member-uuid}}/loans",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"members",
+						"{{member-uuid}}",
+						"loans"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:8080/items/{{item-uuid}}/return",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "http://localhost:8080/items/{{item-uuid}}/return",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"items",
+						"{{item-uuid}}",
+						"return"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
