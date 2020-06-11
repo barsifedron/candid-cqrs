@@ -3,11 +3,8 @@ package com.barsifedron.candid.cqrs.happy.query;
 import com.barsifedron.candid.cqrs.happy.domain.ItemId;
 import com.barsifedron.candid.cqrs.happy.domain.Loan;
 import com.barsifedron.candid.cqrs.query.QueryHandler;
-import com.querydsl.core.Tuple;
 import com.querydsl.core.types.ConstructorExpression;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,10 +15,8 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.barsifedron.candid.cqrs.happy.domain.QItem.item;
 import static com.barsifedron.candid.cqrs.happy.domain.QLoan.loan;
@@ -46,19 +41,25 @@ public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHand
 
         Map<ItemId, ItemDto> items = new JPAQueryFactory(entityManager)
                 .from(item)
-                .where(query.itemId != null ? item.id.id.eq(query.itemId) : null)
+                .where(query.itemId == null ? null : item.id.id.eq(query.itemId))
                 .orderBy(item.since.desc())
                 .transform(groupBy(item.id).as(itemDtoProjection()));
 
         Map<ItemId, List<LoanDto>> loans = new JPAQueryFactory(entityManager)
-                .from(item, loan, member)
+                .from(
+                        item,
+                        loan,
+                        member
+                )
                 .where(
                         item.id.in(items.keySet()),
                         item.id.eq(loan.itemId),
-                        member.memberId.eq(loan.memberId))
+                        member.memberId.eq(loan.memberId)
+                )
                 .orderBy(
                         item.since.desc(),
-                        loan.borrowedOn.desc())
+                        loan.borrowedOn.desc()
+                )
                 .transform(groupBy(item.id).as(list(loanDtoProjection())));
 
         items

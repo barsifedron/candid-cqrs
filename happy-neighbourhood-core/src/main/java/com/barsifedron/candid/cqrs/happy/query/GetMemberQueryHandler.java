@@ -5,6 +5,10 @@ import com.barsifedron.candid.cqrs.happy.domain.MemberId;
 import com.barsifedron.candid.cqrs.happy.domain.QItem;
 import com.barsifedron.candid.cqrs.happy.domain.QLoan;
 import com.barsifedron.candid.cqrs.happy.domain.QMember;
+
+import static com.barsifedron.candid.cqrs.happy.domain.QItem.item;
+import static com.barsifedron.candid.cqrs.happy.domain.QLoan.loan;
+import static com.barsifedron.candid.cqrs.happy.domain.QMember.member;
 import com.barsifedron.candid.cqrs.query.QueryHandler;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.ConstructorExpression;
@@ -26,7 +30,8 @@ import java.util.Map;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static java.util.Collections.emptyList;
 
-public class GetMemberQueryHandler implements QueryHandler<Collection<GetMemberQueryHandler.MemberDto>, GetMemberQuery> {
+public class GetMemberQueryHandler
+        implements QueryHandler<Collection<GetMemberQueryHandler.MemberDto>, GetMemberQuery> {
 
     private final EntityManager entityManager;
 
@@ -40,20 +45,27 @@ public class GetMemberQueryHandler implements QueryHandler<Collection<GetMemberQ
     public Collection<MemberDto> handle(GetMemberQuery query) {
 
         Map<MemberId, MemberDto> members = new JPAQueryFactory(entityManager)
-                .from(QMember.member)
-                .where(query.memberId != null ? QMember.member.memberId.id.eq(query.memberId) : null)
-                .orderBy(QMember.member.registeredOn.desc())
-                .transform(groupBy(QMember.member.memberId).as(memberDtoProjection()));
+                .from(member)
+                .where(query.memberId != null ? member.memberId.id.eq(query.memberId) : null)
+                .orderBy(member.registeredOn.desc())
+                .transform(groupBy(member.memberId).as(memberDtoProjection()));
 
         Map<MemberId, List<LoanDto>> loans = new JPAQueryFactory(entityManager)
-                .from(QMember.member, QLoan.loan, QItem.item)
-                .where(
-                        QItem.item.id.eq(QLoan.loan.itemId),
-                        QMember.member.memberId.in(members.keySet()),
-                        QMember.member.memberId.eq(QLoan.loan.memberId)
+                .from(
+                        item,
+                        loan,
+                        member
                 )
-                .orderBy(QLoan.loan.borrowedOn.desc())
-                .transform(groupBy(QMember.member.memberId).as(GroupBy.list(loanProjection())));
+                .where(
+                        item.id.eq(loan.itemId),
+                        member.memberId.in(members.keySet()),
+                        member.memberId.eq(loan.memberId)
+                )
+                .orderBy(
+                        member.registeredOn.desc(),
+                        loan.borrowedOn.desc()
+                )
+                .transform(groupBy(member.memberId).as(GroupBy.list(loanProjection())));
 
         members
                 .keySet()
@@ -66,23 +78,23 @@ public class GetMemberQueryHandler implements QueryHandler<Collection<GetMemberQ
     private ConstructorExpression<LoanDto> loanProjection() {
         return Projections.constructor(
                 LoanDto.class,
-                QLoan.loan.id.loanId,
-                QItem.item.id.id,
-                QItem.item.name,
-                QLoan.loan.borrowedOn,
-                QLoan.loan.effectiveReturnOn,
-                QLoan.loan.status,
-                QLoan.loan.bill);
+                loan.id.loanId,
+                item.id.id,
+                item.name,
+                loan.borrowedOn,
+                loan.effectiveReturnOn,
+                loan.status,
+                loan.bill);
     }
 
     private ConstructorExpression<MemberDto> memberDtoProjection() {
         return Projections.constructor(
                 MemberDto.class,
-                QMember.member.memberId.id,
-                QMember.member.firstname,
-                QMember.member.surname,
-                QMember.member.email,
-                QMember.member.registeredOn
+                member.memberId.id,
+                member.firstname,
+                member.surname,
+                member.email,
+                member.registeredOn
         );
     }
 
