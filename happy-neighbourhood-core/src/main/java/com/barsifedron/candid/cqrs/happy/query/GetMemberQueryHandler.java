@@ -61,49 +61,6 @@ public class GetMemberQueryHandler implements QueryHandler<Collection<GetMemberQ
 
         return members.values();
 
-//        Tuple tuple = new JPAQueryFactory(entityManager)
-//                .select(
-//                        QMember.member.memberId.id,
-//                        QMember.member.firstname,
-//                        QMember.member.surname,
-//                        QMember.member.email,
-//                        QMember.member.registeredOn
-//                )
-//                .from(QMember.member)
-//                .where(QMember.member.memberId.id.eq(query.memberId))
-//                .fetchOne();
-//
-//        List<LoanDto> loanHistory = new JPAQueryFactory(entityManager)
-//
-//                .select(
-//                        Projections.constructor(
-//                                LoanDto.class,
-//                                QLoan.loan.id.loanId,
-//                                QItem.item.id.id,
-//                                QItem.item.name,
-//                                QLoan.loan.borrowedOn,
-//                                QLoan.loan.effectiveReturnOn,
-//                                QLoan.loan.status,
-//                                QLoan.loan.bill)
-//                )
-//                .from(QMember.member, QLoan.loan, QItem.item)
-//                .where(
-//                        QItem.item.id.eq(QLoan.loan.itemId),
-//                        QMember.member.memberId.id.eq(query.memberId),
-//                        QMember.member.memberId.eq(QLoan.loan.memberId))
-//
-//                .orderBy(QLoan.loan.borrowedOn.desc())
-//
-//                .fetch();
-//
-//        return new MemberDto(
-//                tuple.get(QMember.member.memberId.id),
-//                tuple.get(QMember.member.firstname),
-//                tuple.get(QMember.member.surname),
-//                tuple.get(QMember.member.email),
-//                tuple.get(QMember.member.registeredOn),
-//                loanHistory
-//        );
     }
 
     private ConstructorExpression<LoanDto> loanProjection() {
