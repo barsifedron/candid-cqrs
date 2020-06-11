@@ -27,6 +27,8 @@ import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequestMapping("/members")
@@ -54,12 +56,7 @@ public class MembersController {
                 .memberId(new MemberId().id())
                 .build());
 
-        GetMemberQueryHandler.MemberDto dto = queryBusFactory.simpleBus().dispatch(
-                GetMemberQuery
-                        .builder()
-                        .memberId(commandResponse.result.id())
-                        .build());
-
+        GetMemberQueryHandler.MemberDto dto = getOneMember(commandResponse.result.id());
         return new ResponseEntity(dto, HttpStatus.CREATED);
     }
 
@@ -80,16 +77,27 @@ public class MembersController {
     }
 
     @ResponseBody
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<GetMemberQueryHandler.MemberDto>> getMembers() {
+        Collection<GetMemberQueryHandler.MemberDto> dtos = queryBusFactory
+                .simpleBus()
+                .dispatch(GetMemberQuery.builder().build());
+        return new ResponseEntity(dtos, HttpStatus.OK);
+    }
+
+    @ResponseBody
     @RequestMapping(method = RequestMethod.GET, value = "/{memberId}")
     public ResponseEntity<GetMemberQueryHandler.MemberDto> getMember(@PathVariable String memberId) {
+        GetMemberQueryHandler.MemberDto memberDto = getOneMember(memberId);
+        return new ResponseEntity<>(memberDto, HttpStatus.OK);
+    }
 
-        GetMemberQueryHandler.MemberDto dto = queryBusFactory.simpleBus().dispatch(
-                GetMemberQuery
-                        .builder()
-                        .memberId(memberId)
-                        .build());
-
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+    private GetMemberQueryHandler.MemberDto getOneMember(@PathVariable String memberId) {
+        Collection<GetMemberQueryHandler.MemberDto> dtos = queryBusFactory.simpleBus().dispatch(GetMemberQuery
+                .builder()
+                .memberId(memberId)
+                .build());
+        return dtos.stream().findFirst().orElse(null);
     }
 
     //
