@@ -334,6 +334,62 @@
 				}
 			},
 			"response": []
+		},
+		{
+			"name": "http://localhost:8080/reports?periodStartDate=2019-09-09&periodEndDate=2020-08-08",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "User-Agent",
+						"value": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json, text/plain, */*"
+					},
+					{
+						"key": "Accept-Language",
+						"value": "en-GB,en;q=0.5"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json;charset=utf-8"
+					}
+				],
+				"body": {
+					"mode": "graphql",
+					"graphql": {
+						"query": "",
+						"variables": ""
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/reports?periodStartDate=2019-09-09&periodEndDate=2020-08-08",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"reports"
+					],
+					"query": [
+						{
+							"key": "periodStartDate",
+							"value": "2019-09-09"
+						},
+						{
+							"key": "periodEndDate",
+							"value": "2020-08-08"
+						}
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}

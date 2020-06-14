@@ -11,6 +11,8 @@ In practice I might not be that extreme in a real project. But i would limit it 
 
 This is obviously a small illustrating project but it does already quite a few things. If you feel like something would be worth illustrating here, please let me know.
 
+I will also try add interesting illustrations when I discover new insights from my daily work/learnings.
+
 
 ## The app:
 
@@ -20,21 +22,23 @@ People love it so much that we now need to provide an app to keep track of all t
 Here are the specs (work in progress):
 
 - New members can be registered - DONE
-- New items can be registered - DOME
+- New items can be registered - DONE
 - A member can borrow an item - DONE
 - A daily (small) fee applies for a borrowed item. It can be different for each item - DONE
 - A daily extra fine is applied _on top_ of the daily fee when a member is late in returning an item - DONE
 - When a member borrows an item, a confirmation email with basic information is sent to the member
 - When a member returns an item, an email is sent to her with the details of the amount that will be charged on her account. It should contain the daily details of the cost calculation. - DONE
-- When a member is late, (reminders emails should be sent to the member - TODO
-- ... 
+- Administrators can query a loans report. This will present aggregated loans revenues over a period of time - DONE
+- When a member is late, reminders emails should be sent to the member - TODO
+- ... More to come... 
 
 
 ## Things to look at :
 
 - Check how, on the command side, we focus on the minimum effective number of methods. 
 Repositories are a good example. While the collusion of write and read side queries usually bloats them, here they are pretty small.
-- The read side (queries)... The only rule of the read side is that there is no rule on the read side. Any dirty trick is ok : direct sql, hibernate projections... I have a soft spot for query dsl but that is just me.
+- The read side (queries)... The only rule of the read side is that there is no rule on the read side. Any dirty trick is ok : direct sql, hibernate projections... I have a soft spot for query dsl but that is just me. I will try to add varied examples of how to query data (Jpa/hibernate projections, query-dsl, jooq...)
 - Side effects with domain events. Try to add yours. This architecture makes it really simple to add/ remove side effect behaviour with an almost non existant effect on your command handlers (where the core of your domain and logic lives))
 - Closure of operations when calculating the bill. Everybody should use such ninja tricks as they can eradicate annoying complexities in your code. A really nice article on that can be found here : https://www.arolla.fr/blog/wp-content/uploads/2018/10/DomainModelingwithMonoids.pdf
+- Efficient streaming of mysql data for big processing : http://knes1.github.io/blog/2015/2015-10-19-streaming-mysql-results-using-java8-streams-and-spring-data.html 
 

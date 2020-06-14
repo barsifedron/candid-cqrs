@@ -7,8 +7,6 @@ curl --location --request GET 'http://localhost:8080/items' \
 --header 'Content-Type: application/json;charset=utf-8' \
 --data-raw '{"query":"","variables":{}}'
 
-
-
 Create a item named Shovel :
 
 curl --location --request POST 'http://localhost:8080/items' \
@@ -24,8 +22,6 @@ curl --location --request POST 'http://localhost:8080/items' \
   "dailyFineWhenLateReturn" : 1.00
 }'
 
-
-
 Retrieve a created item by its uuid :
 
 curl --location --request GET 'http://localhost:8080/items/{{item-uuid}}' \
@@ -34,8 +30,6 @@ curl --location --request GET 'http://localhost:8080/items/{{item-uuid}}' \
 --header 'Accept-Language: en-GB,en;q=0.5' \
 --header 'Content-Type: application/json;charset=utf-8' \
 --data-raw ''
-
-
 
 Create a new member :
 
@@ -50,8 +44,6 @@ curl --location --request POST 'http://localhost:8080/members' \
   "surname" : "The First"
 }'
 
-
-
 Retrieve a created member by its uuid :
 
 curl --location --request GET 'http://localhost:8080/members/{{member-uuid}}' \
@@ -60,8 +52,6 @@ curl --location --request GET 'http://localhost:8080/members/{{member-uuid}}' \
 --header 'Accept-Language: en-GB,en;q=0.5' \
 --header 'Content-Type: application/json;charset=utf-8' \
 --data-raw ''
-
-
 
 Borrow an item on behalf of a member :
 
@@ -75,9 +65,7 @@ curl --location --request POST 'http://localhost:8080/members/{{member-uuid}}/lo
 }
 '
 
-
 Return an item :
-
 
 curl --location --request POST 'http://localhost:8080/items/{{item-uuid}}/return' \
 --header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
@@ -85,3 +73,12 @@ curl --location --request POST 'http://localhost:8080/items/{{item-uuid}}/return
 --header 'Accept-Language: en-GB,en;q=0.5' \
 --header 'Content-Type: application/json;charset=utf-8' \
 --data-raw ''
+
+Generate an aggregated report for COMPLETED loans over a period of time:
+
+curl --location --request GET 'http://localhost:8080/reports?periodStartDate={{YYY-MM-DD}}&periodEndDate={{YYY-MM-DD}}' \
+--header 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:72.0) Gecko/20100101 Firefox/72.0' \
+--header 'Accept: application/json, text/plain, */*' \
+--header 'Accept-Language: en-GB,en;q=0.5' \
+--header 'Content-Type: application/json;charset=utf-8' \
+--data-raw '{"query":"","variables":{}}'

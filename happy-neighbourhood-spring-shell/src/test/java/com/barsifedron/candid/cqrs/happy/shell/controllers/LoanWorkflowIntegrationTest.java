@@ -33,86 +33,88 @@ public class LoanWorkflowIntegrationTest {
     @Test
     public void shouldCreateNewMember() throws Exception {
 
-        ResponseEntity<GetMemberQueryHandler.MemberDto> registerMemberResponse = restTemplate.postForEntity(
-                "http://localhost:" + port + "/members",
-                RegisterNewMemberCommand
-                        .builder()
-                        .email("john@malkovitch.com")
-                        .firstname("john")
-                        .surname("malkovitch")
-                        .build(),
-                GetMemberQueryHandler.MemberDto.class
-        );
+        ResponseEntity<GetMemberQueryHandler.MemberDto> registerMemberResponse = restTemplate
+                .postForEntity(
+                        "http://localhost:" + port + "/members",
+                        RegisterNewMemberCommand
+                                .builder()
+                                .email("john@malkovitch.com")
+                                .firstname("john")
+                                .surname("malkovitch")
+                                .build(),
+                        GetMemberQueryHandler.MemberDto.class
+                );
+
         assertThat(registerMemberResponse.getStatusCode().value()).isEqualTo(201);
 
-        ResponseEntity<GetItemsQueryHandler.ItemDto> registerItemResponse = restTemplate.postForEntity(
-                "http://localhost:" + port + "/items",
-                RegisterNewItemCommand
-                        .builder()
-                        .name("hammer")
-                        .dailyRate(new BigDecimal("1.00"))
-                        .dailyFineWhenLateReturn(new BigDecimal("2.00"))
-                        .maximumLoanPeriod(14)
-                        .build(),
-                GetItemsQueryHandler.ItemDto.class
-        );
-        assertThat(registerItemResponse.getStatusCode().value()).isEqualTo(201);
+        ResponseEntity<GetItemsQueryHandler.ItemDto> registerItemResponse = restTemplate
+                .postForEntity(
+                        "http://localhost:" + port + "/items",
+                        RegisterNewItemCommand
+                                .builder()
+                                .name("hammer")
+                                .dailyRate(new BigDecimal("1.00"))
+                                .dailyFineWhenLateReturn(new BigDecimal("2.00"))
+                                .maximumLoanPeriod(14)
+                                .build(),
+                        GetItemsQueryHandler.ItemDto.class
+                );
 
-        System.out.println("registerItemResponse = " + registerItemResponse);
-        System.out.println("registerItemResponse.getBody() = " + registerItemResponse.getBody());
+        assertThat(registerItemResponse.getStatusCode().value()).isEqualTo(201);
 
         Map<String, String> args = new HashMap<>();
         args.put("memberId", registerMemberResponse.getBody().id);
 
-        ResponseEntity<String> borrowItemResponse = restTemplate.postForEntity(
-                "http://localhost:" + port + "/members/{memberId}/loans",
-                BorrowItemCommand
-                        .builder()
-                        .itemId(registerItemResponse.getBody().id)
-                        .build(),
-                String.class,
-                args);
+        ResponseEntity<String> borrowItemResponse = restTemplate
+                .postForEntity(
+                        "http://localhost:" + port + "/members/{memberId}/loans",
+                        BorrowItemCommand
+                                .builder()
+                                .itemId(registerItemResponse.getBody().id)
+                                .build(),
+                        String.class,
+                        args);
+
         assertThat(borrowItemResponse.getStatusCode().value()).isEqualTo(201);
 
         args = new HashMap<>();
         args.put("itemId", registerItemResponse.getBody().id);
 
-        System.out.println("args = " + args);
+        ResponseEntity<String> returnItemResponse = restTemplate
+                .postForEntity(
+                        "http://localhost:" + port + "/items/{itemId}/return",
+                        null,
+                        String.class,
+                        args);
 
-        ResponseEntity<String> returnItemResponse = restTemplate.postForEntity(
-                "http://localhost:" + port + "/items/{itemId}/return",
-                null,
-                String.class,
-                args);
         assertThat(returnItemResponse.getStatusCode().value()).isEqualTo(200);
 
-        ResponseEntity<GetMemberQueryHandler.MemberDto> getMemberResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/members/" + registerMemberResponse.getBody(),
-                GetMemberQueryHandler.MemberDto.class);
+        ResponseEntity<GetMemberQueryHandler.MemberDto> getMemberResponse = restTemplate
+                .getForEntity(
+                        "http://localhost:" + port + "/members/" + registerMemberResponse.getBody(),
+                        GetMemberQueryHandler.MemberDto.class);
 
-        System.out.println("getMemberResponse = " + getMemberResponse);
         assertThat(returnItemResponse.getStatusCode().value()).isEqualTo(200);
 
-       getMemberResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/members/john" ,
-                GetMemberQueryHandler.MemberDto.class);
+        getMemberResponse = restTemplate
+                .getForEntity(
+                        "http://localhost:" + port + "/members/john",
+                        GetMemberQueryHandler.MemberDto.class);
 
-        System.out.println("getMemberResponse = " + getMemberResponse);
         assertThat(returnItemResponse.getStatusCode().value()).isEqualTo(200);
 
+        ResponseEntity<GetMemberQueryHandler.MemberDto> getItemResponse = restTemplate
+                .getForEntity(
+                        "http://localhost:" + port + "/items/" + registerItemResponse.getBody(),
+                        GetMemberQueryHandler.MemberDto.class);
 
-        ResponseEntity<GetMemberQueryHandler.MemberDto> getItemResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/items/" + registerItemResponse.getBody(),
-                GetMemberQueryHandler.MemberDto.class);
-
-        System.out.println("getItemResponse = " + getItemResponse);
         assertThat(returnItemResponse.getStatusCode().value()).isEqualTo(200);
 
-        getItemResponse = restTemplate.getForEntity(
-                "http://localhost:" + port + "/items/hammerId",
-                GetMemberQueryHandler.MemberDto.class);
+        getItemResponse = restTemplate
+                .getForEntity(
+                        "http://localhost:" + port + "/items/hammerId",
+                        GetMemberQueryHandler.MemberDto.class);
 
-        System.out.println("getItemResponse = " + getItemResponse);
         assertThat(returnItemResponse.getStatusCode().value()).isEqualTo(200);
     }
 

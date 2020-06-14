@@ -16,12 +16,11 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import static java.lang.String.format;
 
 @Access(AccessType.FIELD)
 @NoArgsConstructor
@@ -63,9 +62,15 @@ public class Loan {
     @Column(name = "status")
     private STATUS status;
 
-    @Column(name = "bill")
-    @Type(type="text")
-    private String bill;
+    @Column(name = "totalcost")
+    private BigDecimal totalCost;
+
+    @Column(name = "addedfees")
+    private BigDecimal addedFees;
+
+    @Column(name = "detailedcosts")
+    @Type(type = "text")
+    private String detailedCosts;
 
     public boolean hasItemId(ItemId candidate) {
         return Objects.equals(itemId, candidate);
@@ -88,12 +93,12 @@ public class Loan {
     }
 
     public void returnItem() {
+
         effectiveReturnOn = LocalDate.now();
         status = STATUS.RETURNED;
-
-        // calculate the bill
-        LoanCost loanCost = loanCost();
-        bill = loanCost.cost().toString() + "\n" + loanCost.trace();
+        totalCost = fullLoanCostDetailed().cost;
+        addedFees = loanCostPenaltiesPart().cost;
+        detailedCosts = fullLoanCostDetailed().trace;
     }
 
     public MemberId memberId() {
@@ -121,47 +126,89 @@ public class Loan {
     }
 
     public String bill() {
-        return bill;
+        return detailedCosts;
     }
 
     public enum STATUS {
         IN_PROGRESS, RETURNED, MANUALLY_CLOSED
     }
 
-    public LoanCost loanCost() {
+    public LoanCost loanCostPenaltiesPart() {
 
         if (effectiveReturnOn == null) {
             throw new RuntimeException("Can not calculate loan cost in the current state");
         }
 
         return IntStream
-                .range(0, 100000)
+                .range(1, 1000)
+                .mapToObj(n -> expectedReturnOn.plusDays(n))
+                .filter(day -> !day.isAfter(effectiveReturnOn))
+                .map(this::dailyFine)
+                .reduce(LoanCost.NO_COST(), LoanCost::add);
+    }
+
+    public LoanCost loanCostRegularPart() {
+
+        if (effectiveReturnOn == null) {
+            throw new RuntimeException("Can not calculate loan cost in the current state");
+        }
+
+        return IntStream
+                .range(0, 1000)
                 .mapToObj(n -> borrowedOn.plusDays(n))
                 .filter(day -> !day.isAfter(effectiveReturnOn))
-                .map(day -> {
-
-                    List<LoanCost> dailyCosts = new ArrayList<>();
-                    dailyCosts.add(new LoanCost(
-                            regularDailyRate,
-                            String.format(
-                                    "%s : %s € - regular daily fee",
-                                    day.toString(),
-                                    regularDailyRate.toString())));
-
-                    if (day.isAfter(expectedReturnOn)) {
-                        dailyCosts.add(new LoanCost(
-                                dailyFineWhenLate,
-                                String.format(
-                                        "%s : %s € - fine for late return",
-                                        day.toString(),
-                                        dailyFineWhenLate.toString())));
-                    }
-
-                    return dailyCosts;
-                })
-                .flatMap(Collection::stream)
+                .map(this::regularFee)
                 .reduce(LoanCost.NO_COST(), LoanCost::add);
 
+    }
+
+    public LoanCost fullLoanCostShort() {
+
+        if (effectiveReturnOn == null) {
+            throw new RuntimeException("Can not calculate loan cost in the current state");
+        }
+
+        LoanCost regularFees = loanCostRegularPart().toBuilder().trace(" € - regular fees ").build();
+        LoanCost penalties = loanCostPenaltiesPart().toBuilder().trace(" € - penalties ").build();
+
+        return regularFees.add(penalties);
+
+    }
+
+    public LoanCost fullLoanCostDetailed() {
+
+        if (effectiveReturnOn == null) {
+            throw new RuntimeException("Can not calculate loan cost in the current state");
+        }
+
+        return IntStream
+                .range(0, 1000)
+                .mapToObj(n -> borrowedOn.plusDays(n))
+                .filter(day -> !day.isAfter(effectiveReturnOn))
+                .map(day -> regularFee(day).add(dailyFine(day)))
+                .reduce(LoanCost.NO_COST(), LoanCost::add);
+
+    }
+
+    private LoanCost regularFee(LocalDate day) {
+        return new LoanCost(
+                regularDailyRate,
+                String.format(
+                        "%s : %s € - regular daily fee",
+                        day.toString(),
+                        regularDailyRate.toString()));
+    }
+
+    private LoanCost dailyFine(LocalDate day) {
+        if (day.isAfter(expectedReturnOn)) {
+            return new LoanCost(
+                    dailyFineWhenLate,
+                    format(
+                            "%s : %s € - fine for late return",
+                            day.toString(),
+                            dailyFineWhenLate.toString()));
+        }
+        return LoanCost.NO_COST();
     }
 
 }

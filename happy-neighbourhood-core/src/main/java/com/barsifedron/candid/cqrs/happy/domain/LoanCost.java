@@ -14,6 +14,10 @@ public class LoanCost {
     final BigDecimal cost;
     final String trace;
 
+    public LoanCost(BigDecimal cost) {
+        this(cost, "");
+    }
+
     public LoanCost(BigDecimal cost, String aTrace) {
         if (cost.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Can't create negative costs");
@@ -45,7 +49,7 @@ public class LoanCost {
         return trace;
     }
 
-    static LoanCost NO_COST() {
+    public static LoanCost NO_COST() {
         return new LoanCost(BigDecimal.ZERO, "");
     }
 

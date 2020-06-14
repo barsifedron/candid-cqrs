@@ -56,7 +56,7 @@ public class ItemController {
     @RequestMapping(method = RequestMethod.POST, path = "/{itemId}/return")
     public ResponseEntity<String> returnItem(@PathVariable String itemId) {
 
-        CommandResponse<NoResult> commandResponse = commandBus.dispatch(ReturnItemCommand
+        commandBus.dispatch(ReturnItemCommand
                 .builder()
                 .itemId(itemId)
                 .ifNoActiveLoanIsFound(ReturnItemCommand.IF_NO_ACTIVE_LOAN_FOUND.FAIL)
