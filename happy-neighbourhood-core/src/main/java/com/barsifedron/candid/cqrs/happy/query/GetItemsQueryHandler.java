@@ -8,6 +8,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
@@ -15,15 +16,16 @@ import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.barsifedron.candid.cqrs.happy.domain.QItem.item;
 import static com.barsifedron.candid.cqrs.happy.domain.QLoan.loan;
 import static com.barsifedron.candid.cqrs.happy.domain.QMember.member;
 import static com.querydsl.core.group.GroupBy.groupBy;
 import static com.querydsl.core.group.GroupBy.list;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHandler.ItemDto>, GetItemsQuery> {
@@ -41,33 +43,14 @@ public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHand
 
         Map<ItemId, ItemDto> items = new JPAQueryFactory(entityManager)
                 .from(item)
+                .leftJoin(loan)
+                .on(item.id.eq(loan.itemId))
+                .leftJoin(member)
+                .on(member.memberId.eq(loan.memberId))
                 .where(query.itemId == null ? null : item.id.id.eq(query.itemId))
-                .orderBy(item.since.desc())
                 .transform(groupBy(item.id).as(itemDtoProjection()));
 
-        Map<ItemId, List<LoanDto>> loans = new JPAQueryFactory(entityManager)
-                .from(
-                        item,
-                        loan,
-                        member
-                )
-                .where(
-                        item.id.in(items.keySet()),
-                        item.id.eq(loan.itemId),
-                        member.memberId.eq(loan.memberId)
-                )
-                .orderBy(
-                        item.since.desc(),
-                        loan.borrowedOn.desc()
-                )
-                .transform(groupBy(item.id).as(list(loanDtoProjection())));
-
-        items
-                .keySet()
-                .forEach(itemId -> items.get(itemId).loansHistory = loans.getOrDefault(itemId, emptyList()));
-
-        return items.values().stream().collect(toList());
-
+        return items.values().stream().collect(Collectors.toList());
     }
 
     private ConstructorExpression<ItemDto> itemDtoProjection() {
@@ -75,21 +58,18 @@ public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHand
                 ItemDto.class,
                 item.id.id,
                 item.name,
-                item.since);
-    }
-
-    private ConstructorExpression<LoanDto> loanDtoProjection() {
-        return Projections.constructor(
-                LoanDto.class,
-                loan.id.loanId,
-                member.memberId.id,
-                member.firstname,
-                member.surname,
-                member.email,
-                loan.borrowedOn,
-                loan.effectiveReturnOn,
-                loan.status,
-                loan.bill);
+                item.since,
+                list(Projections.constructor(
+                        LoanDto.class,
+                        loan.id.loanId,
+                        member.memberId.id,
+                        member.firstname,
+                        member.surname,
+                        member.email,
+                        loan.borrowedOn,
+                        loan.effectiveReturnOn,
+                        loan.status,
+                        loan.detailedCosts)));
     }
 
     @Override
@@ -99,8 +79,8 @@ public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHand
 
     @Builder(toBuilder = true)
     @NoArgsConstructor
-    @AllArgsConstructor
     @ToString
+    @EqualsAndHashCode
     public static class ItemDto {
 
         public String id;
@@ -110,15 +90,21 @@ public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHand
         public List<LoanDto> loansHistory;
 
         public ItemDto(String id, String name, LocalDate since) {
+            this(id, name, since, Collections.emptyList());
+        }
+
+        public ItemDto(String id, String name, LocalDate since, List<LoanDto> loansHistory) {
             this.id = id;
             this.name = name;
             this.since = since;
+            this.loansHistory = loansHistory.stream().filter(loanDto -> loanDto.loanId != null).collect(toList());
         }
     }
 
     @ToString
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     public static class LoanDto {
 
         public String loanId;
@@ -129,6 +115,9 @@ public class GetItemsQueryHandler implements QueryHandler<List<GetItemsQueryHand
         public LocalDate borrowedOn;
         public LocalDate returnedOn;
         public Loan.STATUS loanStatus;
-        public String bill;
+
+        @ToString.Exclude
+        public String detailedCosts;
+
     }
 }
