@@ -70,7 +70,6 @@ public interface CommandBusMiddleware {
          */
         static CommandBusMiddleware manyIntoACommandBusMiddleware(List<CommandBusMiddleware> middlewares) {
             validate(middlewares);
-            validateLastMiddlewareIsDispatcher(middlewares);
             if (middlewares.size() == 1) {
                 return middlewares.get(0);
             }

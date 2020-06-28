@@ -71,7 +71,8 @@ public interface DomainEventBusMiddleware {
             if (middlewares.size() == 1) {
                 return middlewares.get(0);
             }
-            return middlewares.get(0)
+            return middlewares
+                    .get(0)
                     .decorate(manyIntoADomainEventBusMiddleware(middlewares.subList(1, middlewares.size())));
 
         }
