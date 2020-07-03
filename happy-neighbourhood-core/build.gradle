@@ -26,11 +26,13 @@ dependencies {
     implementation "com.querydsl:querydsl-apt:4.1.3:jpa"
 
 
+    implementation 'javax.annotation:javax.annotation-api:1.3.2'
     implementation 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
 
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'com.querydsl:querydsl-apt:4.1.3:jpa'
 
+    annotationProcessor 'javax.annotation:javax.annotation-api:1.3.2'
     annotationProcessor 'org.hibernate:hibernate-entitymanager:5.2.9.Final'
 
     implementation "javax.inject:javax.inject:1"
@@ -45,4 +47,3 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-

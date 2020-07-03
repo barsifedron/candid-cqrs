@@ -6,8 +6,6 @@ name: CI
 
 on:
     push:
-        branches:
-            - master
     pull_request:
 
 jobs:
@@ -20,18 +18,19 @@ jobs:
             fail-fast: false
             matrix:
                 os: [ubuntu-latest, macos-latest, windows-latest]
+                java: [8, 11]
 
         runs-on: ${{ matrix.os }}
 
         steps:
 
             - name: "git clone"
-              uses: actions/checkout@v1
+              uses: actions/checkout@v2
 
             - name: "setup jdk"
               uses: actions/setup-java@v1
               with:
-                  java-version: 1.8
+                  java-version: ${{ matrix.java }}
 
             - name: "./gradlew build --dry-run"
               uses: eskatos/gradle-command-action@v1
@@ -49,4 +48,3 @@ jobs:
 
             - name: "git diff --exit-code"
               run: git diff --exit-code
-
