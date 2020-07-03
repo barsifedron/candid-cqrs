@@ -24,18 +24,18 @@ public class DomainEventBusMiddlewareTest {
 
         DomainEventBusMiddleware firstMiddleware = new DomainEventBusMiddleware() {
             @Override
-            public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
+            public void dispatch(DomainEvent domainEvent, DomainEventBus bus) {
                 logs.add("First middleware");
-                next.dispatch(domainEvent);
+                bus.dispatch(domainEvent);
                 logs.add("First middleware");
             }
         };
 
         DomainEventBusMiddleware secondMiddleware = new DomainEventBusMiddleware() {
             @Override
-            public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
+            public void dispatch(DomainEvent domainEvent, DomainEventBus bus) {
                 logs.add("\tSecond middleware");
-                next.dispatch(domainEvent);
+                bus.dispatch(domainEvent);
                 logs.add("\tSecond middleware");
             }
         };
@@ -127,9 +127,9 @@ public class DomainEventBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
+        public void dispatch(DomainEvent domainEvent, DomainEventBus bus) {
             LOGGER.info("FirstTestMiddleware : dispatching");
-            next.dispatch(domainEvent);
+            bus.dispatch(domainEvent);
             LOGGER.info("FirstTestMiddleware : dispatched");
         }
     }
@@ -139,9 +139,9 @@ public class DomainEventBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public void dispatch(DomainEvent event, DomainEventBus next) {
+        public void dispatch(DomainEvent event, DomainEventBus bus) {
             LOGGER.info("SecondTestMiddleware : dispatching");
-            next.dispatch(event);
+            bus.dispatch(event);
             LOGGER.info("SecondTestMiddleware : dispatched");
         }
     }

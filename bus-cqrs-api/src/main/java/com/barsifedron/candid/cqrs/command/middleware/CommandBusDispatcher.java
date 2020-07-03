@@ -53,7 +53,7 @@ public class CommandBusDispatcher implements CommandBusMiddleware {
         return commandHandler.handle(command);
     }
 
-    public class CommandHandlerNotFoundException extends RuntimeException {
+    public static class CommandHandlerNotFoundException extends RuntimeException {
         public CommandHandlerNotFoundException(Class<? extends Command> aClass) {
             super("Could not find Command Handler for command of type " + aClass.getName());
         }

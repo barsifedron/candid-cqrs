@@ -39,8 +39,8 @@ public class CommandResponseDomainEventsDispatcher implements CommandBusMiddlewa
     }
 
     @Override
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
-        CommandResponse<T> response = next.dispatch(command);
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+        CommandResponse<T> response = bus.dispatch(command);
         response.domainEvents.forEach(eventBus::dispatch);
         return response;
     }

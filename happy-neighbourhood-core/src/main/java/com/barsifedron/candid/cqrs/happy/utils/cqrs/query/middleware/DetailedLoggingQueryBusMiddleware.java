@@ -14,9 +14,9 @@ public class DetailedLoggingQueryBusMiddleware implements QueryBusMiddleware {
     private final static Logger LOGGER = Logger.getLogger(DetailedLoggingCommandBusMiddleware.class.getName());
 
     @Override
-    public <T> T dispatch(Query<T> query, QueryBus queryBus) {
+    public <T> T dispatch(Query<T> query, QueryBus bus) {
         logQuery(query);
-        T result = queryBus.dispatch(query);
+        T result = bus.dispatch(query);
         logQueryResponse(query, result);
         return result;
     }

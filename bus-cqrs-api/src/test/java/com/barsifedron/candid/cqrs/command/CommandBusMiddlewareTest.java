@@ -33,9 +33,9 @@ public class CommandBusMiddlewareTest {
 
         CommandBusMiddleware firstMiddleware = new CommandBusMiddleware() {
             @Override
-            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
                 logs.add("First middleware");
-                CommandResponse<T> commandResponse = next.dispatch(command);
+                CommandResponse<T> commandResponse = bus.dispatch(command);
                 logs.add("First middleware");
                 return commandResponse;
             }
@@ -43,9 +43,9 @@ public class CommandBusMiddlewareTest {
 
         CommandBusMiddleware secondMiddleware = new CommandBusMiddleware() {
             @Override
-            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
                 logs.add("\tSecond middleware");
-                CommandResponse<T> commandResponse = next.dispatch(command);
+                CommandResponse<T> commandResponse = bus.dispatch(command);
                 logs.add("\tSecond middleware");
                 return commandResponse;
             }
@@ -180,9 +180,9 @@ public class CommandBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
             LOGGER.info("FirstTestMiddleware : dispatching");
-            CommandResponse<T> response = next.dispatch(command);
+            CommandResponse<T> response = bus.dispatch(command);
             LOGGER.info("FirstTestMiddleware : dispatched");
             return response;
         }
@@ -193,9 +193,9 @@ public class CommandBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
             LOGGER.info("SecondTestMiddleware : dispatching");
-            CommandResponse<T> response = next.dispatch(command);
+            CommandResponse<T> response = bus.dispatch(command);
             LOGGER.info("SecondTestMiddleware : dispatched");
             return response;
         }

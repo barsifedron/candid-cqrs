@@ -17,14 +17,14 @@ import java.util.Objects;
  */
 public interface DomainEventBusMiddleware {
 
-    void dispatch(DomainEvent event, DomainEventBus next);
+    void dispatch(DomainEvent event, DomainEventBus bus);
 
     /**
      * Decorates a command bus with this middleware.
      */
     default DomainEventBus decorate(DomainEventBus bus) {
         DomainEventBusMiddleware thisMiddleware = this;
-        DomainEventBus decoratedDomainEventBus = (command) -> thisMiddleware.dispatch(command, bus);
+        DomainEventBus decoratedDomainEventBus = (event) -> thisMiddleware.dispatch(event, bus);
         return decoratedDomainEventBus;
     }
 
@@ -33,8 +33,10 @@ public interface DomainEventBusMiddleware {
      */
     default DomainEventBusMiddleware decorate(DomainEventBusMiddleware middleware) {
         DomainEventBusMiddleware thisMiddleware = this;
-        DomainEventBusMiddleware decoratedDomainEventBusMiddleware = (command, next) -> thisMiddleware
-                .dispatch(command, middleware.decorate(next));
+        DomainEventBusMiddleware decoratedDomainEventBusMiddleware = (event, bus) -> {
+            DomainEventBus decoratedBus = middleware.decorate(bus);
+            thisMiddleware.dispatch(event, decoratedBus);
+        };
         return decoratedDomainEventBusMiddleware;
     }
 

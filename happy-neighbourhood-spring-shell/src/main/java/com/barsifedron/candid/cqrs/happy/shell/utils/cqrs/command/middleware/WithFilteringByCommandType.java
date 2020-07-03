@@ -17,10 +17,10 @@ public class WithFilteringByCommandType<V> implements CommandBusMiddleware {
         this.filteringClass = filteringClass;
     }
 
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
         boolean shouldProcessCommand = command.getClass().isInstance(filteringClass);
         return shouldProcessCommand
-                ? next.dispatch(command)
+                ? bus.dispatch(command)
                 : new CommandResponse<>(null); // you can do better than a null here
     }
 }

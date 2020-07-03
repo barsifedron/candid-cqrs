@@ -1,6 +1,5 @@
 package com.barsifedron.candid.cqrs.query;
 
-
 import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
 
 import java.util.Arrays;
@@ -22,20 +21,19 @@ import java.util.Objects;
  */
 public interface QueryBusMiddleware {
 
-    <T> T dispatch(Query<T> command, QueryBus next);
+    <T> T dispatch(Query<T> command, QueryBus bus);
 
     /**
      * Decorates a command bus with this middleware.
      */
     default QueryBus decorate(QueryBus bus) {
         QueryBusMiddleware thisMiddleware = this;
-        QueryBus decoratedQueryBus = new QueryBus() {
+        return new QueryBus() {
             @Override
             public <T> T dispatch(Query<T> command) {
                 return thisMiddleware.dispatch(command, bus);
             }
         };
-        return decoratedQueryBus;
     }
 
     /**
@@ -43,13 +41,13 @@ public interface QueryBusMiddleware {
      */
     default QueryBusMiddleware decorate(QueryBusMiddleware middleware) {
         QueryBusMiddleware thisMiddleware = this;
-        QueryBusMiddleware decoratedQueryBusMiddleware = new QueryBusMiddleware() {
+        return new QueryBusMiddleware() {
             @Override
-            public <T> T dispatch(Query<T> command, QueryBus next) {
-                return thisMiddleware.dispatch(command, middleware.decorate(next));
+            public <T> T dispatch(Query<T> command, QueryBus bus) {
+                QueryBus decoratedBus = middleware.decorate(bus);
+                return thisMiddleware.dispatch(command, decoratedBus);
             }
         };
-        return decoratedQueryBusMiddleware;
     }
 
     static QueryBus chainManyIntoAQueryBus(QueryBusMiddleware... middlewares) {
@@ -59,7 +57,6 @@ public interface QueryBusMiddleware {
     static QueryBusMiddleware chainManyIntoAQueryBusMiddleware(QueryBusMiddleware... middlewares) {
         return Chain.manyIntoAQueryBusMiddleware(Arrays.asList(middlewares));
     }
-
 
     class Chain {
 

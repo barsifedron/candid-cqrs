@@ -19,12 +19,12 @@ public class WithExecutionDurationLogging implements CommandBusMiddleware {
 
     private final static Logger LOGGER = Logger.getLogger(WithExecutionDurationLogging.class.getName());
 
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
 
         LOGGER.info("Processing simple command of type :" + command.getClass().getName());
 
         long timeBefore = System.nanoTime();
-        CommandResponse<T> result = next.dispatch(command);
+        CommandResponse<T> result = bus.dispatch(command);
         long timeAfter = System.nanoTime();
 
         LOGGER.info("" +

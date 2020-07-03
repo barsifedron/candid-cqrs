@@ -12,20 +12,19 @@ import java.util.Objects;
  */
 public interface CommandBusMiddleware {
 
-    <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next);
+    <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus);
 
     /**
      * Decorates a command bus with this middleware.
      */
     default CommandBus decorate(CommandBus bus) {
         CommandBusMiddleware thisMiddleware = this;
-        CommandBus decoratedCommandBus = new CommandBus() {
+        return new CommandBus() {
             @Override
             public <T> CommandResponse<T> dispatch(Command<T> command) {
                 return thisMiddleware.dispatch(command, bus);
             }
         };
-        return decoratedCommandBus;
     }
 
     /**
@@ -33,13 +32,13 @@ public interface CommandBusMiddleware {
      */
     default CommandBusMiddleware decorate(CommandBusMiddleware middleware) {
         CommandBusMiddleware thisMiddleware = this;
-        CommandBusMiddleware decoratedCommandBusMiddleware = new CommandBusMiddleware() {
+        return new CommandBusMiddleware() {
             @Override
-            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
-                return thisMiddleware.dispatch(command, middleware.decorate(next));
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+                CommandBus decoratedBus = middleware.decorate(bus);
+                return thisMiddleware.dispatch(command, decoratedBus);
             }
         };
-        return decoratedCommandBusMiddleware;
     }
 
     static CommandBus chainManyIntoACommandBus(CommandBusMiddleware... middlewares) {

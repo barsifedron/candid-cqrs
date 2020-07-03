@@ -31,12 +31,12 @@ public class ValidatingCommandBusMiddleware implements CommandBusMiddleware {
     }
 
     @Override
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
         Set<ConstraintViolation<Command>> violations = validator.validate(command);
         if (!violations.isEmpty()) {
             throw new IllegalCommandException(violations);
         }
-        return next.dispatch(command);
+        return bus.dispatch(command);
     }
 
     public static class IllegalCommandException extends RuntimeException {

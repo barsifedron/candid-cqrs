@@ -13,8 +13,8 @@ public class TransactionalCommandBusMiddleware implements CommandBusMiddleware {
 
     @Override
     @Transactional
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
-        return next.dispatch(command);
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+        return bus.dispatch(command);
     }
 
     /**

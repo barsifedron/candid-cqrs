@@ -28,12 +28,12 @@ public class ValidatingQueryBusMiddleware implements QueryBusMiddleware {
     }
 
     @Override
-    public <T> T dispatch(Query<T> query, QueryBus next) {
+    public <T> T dispatch(Query<T> query, QueryBus bus) {
         Set<ConstraintViolation<Query>> violations = validator.validate(query);
         if (!violations.isEmpty()) {
             throw new IllegalCommandException(violations);
         }
-        return next.dispatch(query);
+        return bus.dispatch(query);
     }
 
     public static class IllegalCommandException extends RuntimeException {

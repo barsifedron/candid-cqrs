@@ -21,10 +21,10 @@ public class DetailedLoggingCommandBusMiddleware implements CommandBusMiddleware
             DetailedLoggingCommandBusMiddleware.class.getName());
 
     @Override
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
 
         logCommand(command);
-        CommandResponse<T> commandResponse = next.dispatch(command);
+        CommandResponse<T> commandResponse = bus.dispatch(command);
         logCommandResponse(command, commandResponse);
         logDomainEvents(commandResponse);
 

@@ -21,11 +21,11 @@ public class ExecutionDurationLoggingQueryBusMiddleware implements QueryBusMiddl
     public ExecutionDurationLoggingQueryBusMiddleware() {
     }
 
-    public <T> T dispatch(Query<T> query, QueryBus next) {
+    public <T> T dispatch(Query<T> query, QueryBus bus) {
         LOGGER.info("Processing simple query of type :" + query.getClass().getName());
 
         long timeBefore = System.nanoTime();
-        T result = next.dispatch(query);
+        T result = bus.dispatch(query);
         long timeAfter = System.nanoTime();
         LOGGER.info("" +
                 "Done processing query of type" + query.getClass().getName() +

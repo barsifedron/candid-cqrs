@@ -13,9 +13,9 @@ public class ExceptionLoggingQueryBusMiddleware implements QueryBusMiddleware {
     private final static Logger LOGGER = Logger.getLogger(DetailedLoggingCommandBusMiddleware.class.getName());
 
     @Override
-    public <T> T dispatch(Query<T> query, QueryBus queryBus) {
+    public <T> T dispatch(Query<T> query, QueryBus bus) {
         try {
-            return queryBus.dispatch(query);
+            return bus.dispatch(query);
         } catch (Throwable th) {
 
             LOGGER.severe(""

@@ -12,9 +12,9 @@ public class WithErrorLogCommandBusMiddleware implements CommandBusMiddleware {
     private final static Logger LOGGER = Logger.getLogger(WithErrorLogCommandBusMiddleware.class.getName());
 
     @Override
-    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+    public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
         try {
-            CommandResponse<T> response = next.dispatch(command);
+            CommandResponse<T> response = bus.dispatch(command);
             return response;
         } catch (Exception exception) {
             LOGGER.info("Failed to process command due to error : " + exception.getMessage());

@@ -21,9 +21,9 @@ public class QueryBusMiddlewareTest {
 
         QueryBusMiddleware firstMiddleware = new QueryBusMiddleware() {
             @Override
-            public <T> T dispatch(Query<T> query, QueryBus next) {
+            public <T> T dispatch(Query<T> query, QueryBus bus) {
                 logs.add("First middleware");
-                T queryResponse = next.dispatch(query);
+                T queryResponse = bus.dispatch(query);
                 logs.add("First middleware");
                 return queryResponse;
             }
@@ -31,9 +31,9 @@ public class QueryBusMiddlewareTest {
 
         QueryBusMiddleware secondMiddleware = new QueryBusMiddleware() {
             @Override
-            public <T> T dispatch(Query<T> query, QueryBus next) {
+            public <T> T dispatch(Query<T> query, QueryBus bus) {
                 logs.add("\tSecond middleware");
-                T queryResponse = next.dispatch(query);
+                T queryResponse = bus.dispatch(query);
                 logs.add("\tSecond middleware");
                 return queryResponse;
             }
@@ -139,9 +139,9 @@ public class QueryBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public <T> T dispatch(Query<T> query, QueryBus next) {
+        public <T> T dispatch(Query<T> query, QueryBus bus) {
             LOGGER.info("FirstTestMiddleware : dispatching");
-            T response = next.dispatch(query);
+            T response = bus.dispatch(query);
             LOGGER.info("FirstTestMiddleware : dispatched");
             return response;
         }
@@ -152,9 +152,9 @@ public class QueryBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public <T> T dispatch(Query<T> query, QueryBus next) {
+        public <T> T dispatch(Query<T> query, QueryBus bus) {
             LOGGER.info("SecondTestMiddleware : dispatching");
-            T response = next.dispatch(query);
+            T response = bus.dispatch(query);
             LOGGER.info("SecondTestMiddleware : dispatched");
             return response;
         }

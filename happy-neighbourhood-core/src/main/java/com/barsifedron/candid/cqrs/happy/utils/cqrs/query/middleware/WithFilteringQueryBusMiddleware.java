@@ -16,9 +16,9 @@ public class WithFilteringQueryBusMiddleware<V> implements QueryBusMiddleware {
         this.filteringClass = filteringClass;
     }
 
-    public <T> T dispatch(Query<T> query, QueryBus next) {
+    public <T> T dispatch(Query<T> query, QueryBus bus) {
         if (query.getClass().isInstance(filteringClass)) {
-            return next.dispatch(query);
+            return bus.dispatch(query);
         }
         return null;
     }
