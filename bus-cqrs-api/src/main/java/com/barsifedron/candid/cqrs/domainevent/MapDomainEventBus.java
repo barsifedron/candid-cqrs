@@ -1,9 +1,4 @@
-package com.barsifedron.candid.cqrs.domainevent.middleware;
-
-import com.barsifedron.candid.cqrs.domainevent.DomainEvent;
-import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
-import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
-import com.barsifedron.candid.cqrs.domainevent.DomainEventHandler;
+package com.barsifedron.candid.cqrs.domainevent;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -19,17 +14,17 @@ import static java.util.stream.Collectors.toMap;
 
 /**
  * This is in charge of dispatching the domain events to the right Handler.
- * This will only allow for many handlers per event. As it should be.
+ * This will only allow fowr many handlers per event. As it should be.
  */
-public class DomainEventBusDispatcher implements DomainEventBusMiddleware {
+public class MapDomainEventBus implements DomainEventBus {
 
     private final Map<Class<DomainEvent>, List<Supplier<DomainEventHandler>>> handlers;
 
-    public DomainEventBusDispatcher(DomainEventHandler... handlers) {
+    public MapDomainEventBus(DomainEventHandler... handlers) {
         this(Stream.of(handlers).collect(Collectors.toSet()));
     }
 
-    public DomainEventBusDispatcher(Set<? extends DomainEventHandler> set) {
+    public MapDomainEventBus(Set<? extends DomainEventHandler> set) {
         this(set.stream().collect(toMap(
                 handler -> handler.listenTo(),
                 handler -> Stream.of((Supplier<DomainEventHandler>) () -> handler).collect(toList()),
@@ -41,12 +36,12 @@ public class DomainEventBusDispatcher implements DomainEventBusMiddleware {
      * Your set of handlers should be given to you by your dependency injection tool.
      * See examples in others modules.
      */
-    public DomainEventBusDispatcher(Map<Class<DomainEvent>, List<Supplier<DomainEventHandler>>> handlers) {
+    public MapDomainEventBus(Map<Class<DomainEvent>, List<Supplier<DomainEventHandler>>> handlers) {
         this.handlers = handlers;
     }
 
     @Override
-    public void dispatch(DomainEvent event, DomainEventBus notUsed) {
+    public void dispatch(DomainEvent event) {
         handlers
                 .getOrDefault(event.getClass(), Collections.emptyList())
                 .forEach(handler -> handler.get().handle(event));

@@ -1,8 +1,8 @@
 package com.barsifedron.candid.cqrs.happy.shell.controllers;
 
-import com.barsifedron.candid.cqrs.happy.command.BorrowItemCommand;
 import com.barsifedron.candid.cqrs.happy.command.RegisterNewItemCommand;
 import com.barsifedron.candid.cqrs.happy.command.RegisterNewMemberCommand;
+import com.barsifedron.candid.cqrs.happy.command.BorrowItem;
 import com.barsifedron.candid.cqrs.happy.query.GetItemsQueryHandler;
 import com.barsifedron.candid.cqrs.happy.query.GetMemberQueryHandler;
 import org.junit.Test;
@@ -68,7 +68,7 @@ public class LoanWorkflowIntegrationTest {
         ResponseEntity<String> borrowItemResponse = restTemplate
                 .postForEntity(
                         "http://localhost:" + port + "/members/{memberId}/loans",
-                        BorrowItemCommand
+                        BorrowItem.Command
                                 .builder()
                                 .itemId(registerItemResponse.getBody().id)
                                 .build(),
