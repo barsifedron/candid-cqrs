@@ -1,100 +1,102 @@
 package com.barsifedron.candid.cqrs.command;
 
-import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
-
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
- * A really simple command interceptor interface.
+ * A really simple message interceptor interface.
  * We'll use this to create mighty chains of decorators!
+ * <p>
+ * When it receives a message, it CAN do things before and after sending it to the bus.
+ * <p>
+ * Typically :
+ * <p>
+ * 1. Receive message
+ * 2. Do some operation if you want (log the message for example)
+ * 3. Forward the message to the decorated bus -> The decorated bus processes the message
+ * 4. the decorated bus returns the result of the processing (when there is one)
+ * 5. The Middleware intercepts the bus result and can do something with it IF you want (log the result for example)
+ * 6. the middleware returns the result.
+ * <p>
+ * <p>
+ * This really simple interface allows quite powerful things:
+ * <p>
+ * 1. You can always make a composite Bus by combining a middleware and a bus.
+ * 2. You can always make a composite middleware by composing two middleware. (And if you can with two you can with any number of them)
+ * <p>
+ * It really is nothing more than a decorator in disguise. And while you can totally code a command bus using decorators,
+ * this approach makes for cleaner wiring of your components when one constructs a bus.
+ * <p>
+ * Examples in the code should make this clear.
  */
 public interface CommandBusMiddleware {
 
-    <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus);
+    <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next);
 
     /**
-     * Decorates a command bus with this middleware.
+     * Passes to the next in line without doing anything.
+     * Logically useless but helpful for some wiring operations.
+     */
+    static CommandBusMiddleware neutral() {
+        return new CommandBusMiddleware() {
+            @Override
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+                return next.dispatch(command);
+            }
+        };
+    }
+
+    /**
+     * Decorates a bus with this middleware.
+     * An incoming message will go through THIS middleware, which can choose to intercept it, before being passed down to the bus.
      */
     default CommandBus decorate(CommandBus bus) {
         CommandBusMiddleware thisMiddleware = this;
-        return new CommandBus() {
+        CommandBus decoratedCommandBus = new CommandBus() {
             @Override
             public <T> CommandResponse<T> dispatch(Command<T> command) {
                 return thisMiddleware.dispatch(command, bus);
             }
         };
+        return decoratedCommandBus;
     }
 
     /**
      * Decorates an existing middleware with this middleware.
+     * An incoming message will go through THIS middleware, which can choose to intercept it,
+     * before being passed down to the next one.
+     * <p>
+     * We can always make a composite middleware from two middleware....
      */
-    default CommandBusMiddleware decorate(CommandBusMiddleware middleware) {
+    default CommandBusMiddleware compose(CommandBusMiddleware middleware) {
         CommandBusMiddleware thisMiddleware = this;
-        return new CommandBusMiddleware() {
+        CommandBusMiddleware decoratedCommandBusMiddleware = new CommandBusMiddleware() {
             @Override
-            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
-                CommandBus decoratedBus = middleware.decorate(bus);
-                return thisMiddleware.dispatch(command, decoratedBus);
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+                return thisMiddleware.dispatch(command, middleware.decorate(next));
             }
         };
+        return decoratedCommandBusMiddleware;
     }
 
-    static CommandBus chainManyIntoACommandBus(CommandBusMiddleware... middlewares) {
-        return Chain.manyIntoACommandBus(Arrays.asList(middlewares));
+    /**
+     * ... And when you can compose two you can compose many. Functionally...
+     */
+    static CommandBusMiddleware compositeOf(CommandBusMiddleware... middlewares) {
+        return Stream.of(middlewares).reduce(CommandBusMiddleware.neutral(), (m1, m2) -> m1.compose(m2));
     }
 
-    static CommandBusMiddleware chainManyIntoACommandBusMiddleware(CommandBusMiddleware... middlewares) {
-        return Chain.manyIntoACommandBusMiddleware(Arrays.asList(middlewares));
-    }
-
-    class Chain {
-
-        /**
-         * Creates a command bus from a list of middleware, wrapping them recursively into each others.
-         * The "last" middleware called must ALWAYS be the dispatcher and, contrarily to the others,
-         * will not forward the command but finally handle it to the command handlers.
-         * Hence the last Chain built with "null".
-         */
-        static CommandBus manyIntoACommandBus(List<CommandBusMiddleware> middlewares) {
-            validate(middlewares);
-            validateLastMiddlewareIsDispatcher(middlewares);
-            CommandBusMiddleware compositeMiddleware = manyIntoACommandBusMiddleware(middlewares);
-            return compositeMiddleware.decorate((CommandBus) null);
+    /**
+     * ... or recursively. Whatever you like most.
+     */
+    static CommandBusMiddleware compositeOf(List<CommandBusMiddleware> middlewares) {
+        if (middlewares.isEmpty()) {
+            return CommandBusMiddleware.neutral();
         }
-
-        /**
-         * Wraps a list of middleware into each other to create a composite one.
-         */
-        static CommandBusMiddleware manyIntoACommandBusMiddleware(List<CommandBusMiddleware> middlewares) {
-            validate(middlewares);
-            if (middlewares.size() == 1) {
-                return middlewares.get(0);
-            }
-            return middlewares.get(0)
-                    .decorate(manyIntoACommandBusMiddleware(middlewares.subList(1, middlewares.size())));
+        if (middlewares.size() == 1) {
+            return middlewares.get(0);
         }
-
-        private static void validate(List<CommandBusMiddleware> middlewares) {
-            if (middlewares == null) {
-                throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
-            }
-            if (middlewares.isEmpty()) {
-                throw new RuntimeException("Can not operate on an empty list of middlewares");
-            }
-            if (middlewares.stream().anyMatch(Objects::isNull)) {
-                throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
-            }
-        }
-
-        private static void validateLastMiddlewareIsDispatcher(List<CommandBusMiddleware> middlewares) {
-            CommandBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
-            if (!lastMiddlewareInChain.getClass().isAssignableFrom(CommandBusDispatcher.class)) {
-                throw new RuntimeException(
-                        "The last middleware of the chain must always be the one dispatching to handlers.");
-            }
-        }
+        return middlewares.get(0).compose(compositeOf(middlewares.subList(1, middlewares.size())));
     }
 
 }

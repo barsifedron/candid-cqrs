@@ -24,7 +24,7 @@ import static java.lang.String.format;
 
 @Access(AccessType.FIELD)
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @Builder(toBuilder = true)
 @ToString
 @Entity

@@ -2,11 +2,11 @@ package com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.command;
 
 import com.barsifedron.candid.cqrs.command.CommandBus;
 import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
-import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
-import com.barsifedron.candid.cqrs.command.middleware.CommandResponseDomainEventsDispatcher;
+import com.barsifedron.candid.cqrs.command.MapCommandBus;
+import com.barsifedron.candid.cqrs.command.middleware.DomainEventsDispatcher;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
-import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
+import com.barsifedron.candid.cqrs.domainevent.MapDomainEventBus;
 import com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.command.middleware.WithErrorLogCommandBusMiddleware;
 import com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.command.middleware.WithExecutionDurationLogging;
 import com.barsifedron.candid.cqrs.happy.utils.cqrs.command.middleware.DetailedLoggingCommandBusMiddleware;
@@ -49,18 +49,17 @@ public class CommandBusFactory {
 
         CommandBusMiddleware transactionalMiddleware = transactionalMiddleware();
 
-        DomainEventBus domainEventBus = DomainEventBusMiddleware
-                .chainManyIntoADomainEventBus(new DomainEventBusDispatcher(domainEventHandlersRegistry.handlers()));
+        DomainEventBus domainEventBus = new MapDomainEventBus(domainEventHandlersRegistry.handlers());
 
-        return CommandBusMiddleware.chainManyIntoACommandBus(
-                new WithErrorLogCommandBusMiddleware(),
-                new WithExecutionDurationLogging(),
-                new DetailedLoggingCommandBusMiddleware(),
-                new ValidatingCommandBusMiddleware(),
-                transactionalMiddleware,
-                new CommandResponseDomainEventsDispatcher(domainEventBus),
-                new CommandBusDispatcher(commandHandlersRegistry.handlers())
-        );
+        return CommandBusMiddleware
+                .compositeOf(
+                        new WithErrorLogCommandBusMiddleware(),
+                        new WithExecutionDurationLogging(),
+                        new DetailedLoggingCommandBusMiddleware(),
+                        new ValidatingCommandBusMiddleware(),
+                        transactionalMiddleware,
+                        new DomainEventsDispatcher(domainEventBus))
+                .decorate(new MapCommandBus(commandHandlersRegistry.handlers()));
     }
 
     private CommandBusMiddleware transactionalMiddleware() {

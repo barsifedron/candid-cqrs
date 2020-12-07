@@ -1,10 +1,8 @@
 package com.barsifedron.candid.cqrs.domainevent;
 
-import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -22,34 +20,26 @@ public class DomainEventBusMiddlewareTest {
 
         List<String> logs = new ArrayList<>();
 
-        DomainEventBusMiddleware firstMiddleware = new DomainEventBusMiddleware() {
-            @Override
-            public void dispatch(DomainEvent domainEvent, DomainEventBus bus) {
-                logs.add("First middleware");
-                bus.dispatch(domainEvent);
-                logs.add("First middleware");
-            }
+        DomainEventBusMiddleware firstMiddleware = (domainEvent, next) -> {
+            logs.add("First middleware");
+            next.dispatch(domainEvent);
+            logs.add("First middleware");
         };
 
-        DomainEventBusMiddleware secondMiddleware = new DomainEventBusMiddleware() {
-            @Override
-            public void dispatch(DomainEvent domainEvent, DomainEventBus bus) {
-                logs.add("\tSecond middleware");
-                bus.dispatch(domainEvent);
-                logs.add("\tSecond middleware");
-            }
+        DomainEventBusMiddleware secondMiddleware = (domainEvent, next) -> {
+            logs.add("\tSecond middleware");
+            next.dispatch(domainEvent);
+            logs.add("\tSecond middleware");
+
         };
 
-        DomainEventBus baseBus = new DomainEventBus() {
-            @Override
-            public void dispatch(DomainEvent domainEvent) {
-                logs.add("\t\tDecorated bus execution.");
-                new DomainEventBusDispatcher(new NothingToDoDomainEventHandler()).dispatch(domainEvent, null);
-            }
+        DomainEventBus baseBus = domainEvent -> {
+            logs.add("\t\tDecorated bus execution.");
+            new MapDomainEventBus(new NothingToDoDomainEventHandler()).dispatch(domainEvent);
         };
 
         DomainEventBus domainEventBus = firstMiddleware.decorate(secondMiddleware.decorate(baseBus));
-        DomainEventBus secondDomainEventBus = (firstMiddleware.decorate(secondMiddleware)).decorate(baseBus);
+        DomainEventBus secondDomainEventBus = (firstMiddleware.compose(secondMiddleware)).decorate(baseBus);
 
         domainEventBus.dispatch(new NothingToDoEvent());
         assertEquals(
@@ -73,52 +63,13 @@ public class DomainEventBusMiddlewareTest {
     }
 
     @Test
-    public void shouldFailToConstructEmptyMiddlewareChain() {
-        assertThrows(
-                RuntimeException.class,
-                () -> DomainEventBusMiddleware.chainManyIntoADomainEventBus());
-    }
-
-    @Test
-    public void shouldFailINoDispatcherMiddleware() {
-        assertThrows(
-                RuntimeException.class,
-                () -> DomainEventBusMiddleware.chainManyIntoADomainEventBus(new FirstTestMiddleware()));
-    }
-
-    @Test
-    public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        assertThrows(
-                RuntimeException.class,
-                () -> {
-                    DomainEventBusMiddleware.chainManyIntoADomainEventBus(
-                            new FirstTestMiddleware(),
-                            new DomainEventBusDispatcher(new HashSet<>()),
-                            new SecondTestMiddleware()
-                    );
-                });
-    }
-
-    @Test
-    public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
-        assertThrows(
-                RuntimeException.class,
-                () -> {
-                    DomainEventBusMiddleware.chainManyIntoADomainEventBus(
-                            new FirstTestMiddleware(),
-                            new SecondTestMiddleware(),
-                            null,
-                            new DomainEventBusDispatcher(new HashSet<>()));
-                });
-    }
-
-    @Test
     public void shouldProcessDomainEventsWhenRightHandler() {
         Set<NothingToDoDomainEventHandler> handlers = Stream.of(new NothingToDoDomainEventHandler()).collect(toSet());
-        DomainEventBus chain = DomainEventBusMiddleware.chainManyIntoADomainEventBus(
-                new FirstTestMiddleware(),
-                new SecondTestMiddleware(),
-                new DomainEventBusDispatcher(handlers));
+        DomainEventBus chain = DomainEventBusMiddleware
+                .compositeOf(
+                        new FirstTestMiddleware(),
+                        new SecondTestMiddleware())
+                .decorate(new MapDomainEventBus(handlers));
         chain.dispatch(new NothingToDoEvent());
     }
 
@@ -127,9 +78,9 @@ public class DomainEventBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public void dispatch(DomainEvent domainEvent, DomainEventBus bus) {
+        public void dispatch(DomainEvent domainEvent, DomainEventBus next) {
             LOGGER.info("FirstTestMiddleware : dispatching");
-            bus.dispatch(domainEvent);
+            next.dispatch(domainEvent);
             LOGGER.info("FirstTestMiddleware : dispatched");
         }
     }
@@ -139,9 +90,9 @@ public class DomainEventBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public void dispatch(DomainEvent event, DomainEventBus bus) {
+        public void dispatch(DomainEvent event, DomainEventBus next) {
             LOGGER.info("SecondTestMiddleware : dispatching");
-            bus.dispatch(event);
+            next.dispatch(event);
             LOGGER.info("SecondTestMiddleware : dispatched");
         }
     }

@@ -1,10 +1,8 @@
 package com.barsifedron.candid.cqrs.query;
 
-import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -21,9 +19,9 @@ public class QueryBusMiddlewareTest {
 
         QueryBusMiddleware firstMiddleware = new QueryBusMiddleware() {
             @Override
-            public <T> T dispatch(Query<T> query, QueryBus bus) {
+            public <T> T dispatch(Query<T> query, QueryBus next) {
                 logs.add("First middleware");
-                T queryResponse = bus.dispatch(query);
+                T queryResponse = next.dispatch(query);
                 logs.add("First middleware");
                 return queryResponse;
             }
@@ -31,9 +29,9 @@ public class QueryBusMiddlewareTest {
 
         QueryBusMiddleware secondMiddleware = new QueryBusMiddleware() {
             @Override
-            public <T> T dispatch(Query<T> query, QueryBus bus) {
+            public <T> T dispatch(Query<T> query, QueryBus next) {
                 logs.add("\tSecond middleware");
-                T queryResponse = bus.dispatch(query);
+                T queryResponse = next.dispatch(query);
                 logs.add("\tSecond middleware");
                 return queryResponse;
             }
@@ -43,12 +41,12 @@ public class QueryBusMiddlewareTest {
             @Override
             public <T> T dispatch(Query<T> query) {
                 logs.add("\t\tDecorated bus execution.");
-                return new QueryBusDispatcher(new ReturnTwoQueryHandler()).dispatch(query, null);
+                return new MapQueryBus(new ReturnTwoQueryHandler()).dispatch(query);
             }
         };
 
         QueryBus queryBus = firstMiddleware.decorate(secondMiddleware.decorate(baseBus));
-        QueryBus secondQueryBus = (firstMiddleware.decorate(secondMiddleware)).decorate(baseBus);
+        QueryBus secondQueryBus = (firstMiddleware.compose(secondMiddleware)).decorate(baseBus);
 
         queryBus.dispatch(new ReturnTwoQuery());
         assertEquals(
@@ -71,77 +69,14 @@ public class QueryBusMiddlewareTest {
                 logs.stream().collect(Collectors.joining("\n")));
     }
 
-    @Test
-    public void shouldFailToConstructEmptyMiddlewareChain() {
-
-        assertThrows(
-                RuntimeException.class,
-                () -> QueryBusMiddleware.chainManyIntoAQueryBus()
-        );
-
-    }
-
-    @Test
-    public void shouldFailINoDispatcherMiddleware() {
-        assertThrows(
-                RuntimeException.class,
-                () -> QueryBusMiddleware.chainManyIntoAQueryBus(new FirstTestMiddleware()));
-    }
-
-    @Test
-    public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        assertThrows(
-                RuntimeException.class,
-                () -> {
-                    QueryBusMiddleware.chainManyIntoAQueryBus(
-                            new FirstTestMiddleware(),
-                            new QueryBusDispatcher(new HashSet<>()),
-                            new SecondTestMiddleware());
-                });
-    }
-
-    @Test
-    public void shouldFailToBuildAChainOfMiddlewareIfOneIsNull() {
-        assertThrows(
-                RuntimeException.class,
-                () -> {
-                    QueryBusMiddleware.chainManyIntoAQueryBus(
-                            new FirstTestMiddleware(),
-                            new SecondTestMiddleware(),
-                            null,
-                            new QueryBusDispatcher(new HashSet<>()));
-                });
-    }
-
-    @Test
-    public void shouldFailToProcessQuerysWhenNoRightHandler() {
-        QueryBus chain = QueryBusMiddleware.chainManyIntoAQueryBus(
-                new FirstTestMiddleware(),
-                new SecondTestMiddleware(),
-                new QueryBusDispatcher(new HashSet<>()));
-        assertThrows(
-                QueryBusDispatcher.QueryHandlerNotFoundException.class,
-                () -> chain.dispatch(new ReturnTwoQuery()));
-    }
-
-    @Test
-    public void shouldProcessQuerysWhenRightHandler() {
-        QueryBus chain = QueryBusMiddleware.chainManyIntoAQueryBus(
-                new FirstTestMiddleware(),
-                new SecondTestMiddleware(),
-                new QueryBusDispatcher(new ReturnTwoQueryHandler()));
-        Integer response = chain.dispatch(new ReturnTwoQuery());
-        assertEquals(Integer.valueOf(2), response);
-    }
-
     static class FirstTestMiddleware implements QueryBusMiddleware {
 
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public <T> T dispatch(Query<T> query, QueryBus bus) {
+        public <T> T dispatch(Query<T> query, QueryBus next) {
             LOGGER.info("FirstTestMiddleware : dispatching");
-            T response = bus.dispatch(query);
+            T response = next.dispatch(query);
             LOGGER.info("FirstTestMiddleware : dispatched");
             return response;
         }
@@ -152,9 +87,9 @@ public class QueryBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public <T> T dispatch(Query<T> query, QueryBus bus) {
+        public <T> T dispatch(Query<T> query, QueryBus next) {
             LOGGER.info("SecondTestMiddleware : dispatching");
-            T response = bus.dispatch(query);
+            T response = next.dispatch(query);
             LOGGER.info("SecondTestMiddleware : dispatched");
             return response;
         }

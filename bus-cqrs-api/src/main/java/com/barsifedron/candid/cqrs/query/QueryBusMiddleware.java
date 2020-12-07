@@ -1,110 +1,98 @@
 package com.barsifedron.candid.cqrs.query;
 
-import com.barsifedron.candid.cqrs.query.middleware.QueryBusDispatcher;
-
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
- * The middleware intercept your query on its way to or back from the query handlers.
- * Think of this as a chain of decorators, each one adding its own behaviour to the process.
+ * A really simple message interceptor interface.
+ * We'll use this to create mighty chains of decorators!
  * <p>
- * This is an extremely powerful way to add common behavior to all your query processing.
- * Simple examples of middleware:
- * A middleware opening and closing transactions around your query handling.
- * A middleware logging the execution time taken to process your query etc...
+ * When it receives a message, it CAN do things before and after sending it to the bus.
  * <p>
- * To help you understand, a few examples are provided in the bus-cqrs-example project
+ * Typically :
  * <p>
- * See an alternative way of doing this in the `bus-cqs` module.
+ * 1. Receive message
+ * 2. Do some operation if you want (log the message for example)
+ * 3. Forward the message to the decorated bus -> The decorated bus processes the message
+ * 4. the decorated bus returns the result of the processing (when there is one)
+ * 5. The Middleware intercepts the bus result and can do something with it IF you want (log the result for example)
+ * 6. the middleware returns the result.
+ * <p>
+ * <p>
+ * This really simple interface allows quite powerful things:
+ * <p>
+ * 1. You can always make a composite Bus by combining a middleware and a bus.
+ * 2. You can always make a composite middleware by composing two middleware. (And if you can with two you can with any number of them)
+ * <p>
+ * It really is nothing more than a decorator in disguise. And while you can totally code a command bus using decorators,
+ * this approach makes for cleaner wiring of your components when one constructs a bus.
+ * <p>
+ * Examples in the code should make this clear.
  */
 public interface QueryBusMiddleware {
 
-    <T> T dispatch(Query<T> command, QueryBus bus);
+    <T> T dispatch(Query<T> query, QueryBus next);
 
     /**
-     * Decorates a command bus with this middleware.
+     * Passes to the next in line without doing anything.
+     * Logically useless but helpful for some wiring operations.
+     */
+    static QueryBusMiddleware neutral() {
+        return new QueryBusMiddleware() {
+            @Override
+            public <T> T dispatch(Query<T> query, QueryBus next) {
+                return next.dispatch(query);
+            }
+        };
+    }
+
+    /**
+     * Decorates a bus with this middleware.
      */
     default QueryBus decorate(QueryBus bus) {
         QueryBusMiddleware thisMiddleware = this;
-        return new QueryBus() {
+        QueryBus decoratedQueryBus = new QueryBus() {
             @Override
             public <T> T dispatch(Query<T> command) {
                 return thisMiddleware.dispatch(command, bus);
             }
         };
+        return decoratedQueryBus;
     }
 
     /**
      * Decorates an existing middleware with this middleware.
+     * We can always make a composite middleware from two middleware....
      */
-    default QueryBusMiddleware decorate(QueryBusMiddleware middleware) {
+    default QueryBusMiddleware compose(QueryBusMiddleware middleware) {
         QueryBusMiddleware thisMiddleware = this;
-        return new QueryBusMiddleware() {
+        QueryBusMiddleware decoratedQueryBusMiddleware = new QueryBusMiddleware() {
             @Override
-            public <T> T dispatch(Query<T> command, QueryBus bus) {
-                QueryBus decoratedBus = middleware.decorate(bus);
-                return thisMiddleware.dispatch(command, decoratedBus);
+            public <T> T dispatch(Query<T> query, QueryBus next) {
+                return thisMiddleware.dispatch(query, middleware.decorate(next));
             }
         };
+        return decoratedQueryBusMiddleware;
     }
 
-    static QueryBus chainManyIntoAQueryBus(QueryBusMiddleware... middlewares) {
-        return Chain.manyIntoAQueryBus(Arrays.asList(middlewares));
+    /**
+     * ... And when you can compose two you can compose many. Functionally...
+     */
+    static QueryBusMiddleware compositeOf(QueryBusMiddleware... middlewares) {
+        return Stream.of(middlewares).reduce(QueryBusMiddleware.neutral(), (m1, m2) -> m1.compose(m2));
     }
 
-    static QueryBusMiddleware chainManyIntoAQueryBusMiddleware(QueryBusMiddleware... middlewares) {
-        return Chain.manyIntoAQueryBusMiddleware(Arrays.asList(middlewares));
+    /**
+     * ... or recursively. Whatever you like most.
+     */
+    static QueryBusMiddleware compositeOf(List<QueryBusMiddleware> middlewares) {
+        if (middlewares.isEmpty()) {
+            return QueryBusMiddleware.neutral();
+        }
+        if (middlewares.size() == 1) {
+            return middlewares.get(0);
+        }
+        return middlewares.get(0).compose(compositeOf(middlewares.subList(1, middlewares.size())));
     }
 
-    class Chain {
-
-        /**
-         * Creates a query bus from a list of middleware, wrapping them recursively into each others.
-         * The "last" middleware called must ALWAYS be the dispatcher and, contrarily to the others,
-         * will not forward the command but finally handle it to the command handlers.
-         * Hence the last Chain built with "null".
-         */
-        static QueryBus manyIntoAQueryBus(List<QueryBusMiddleware> middlewares) {
-
-            validate(middlewares);
-            validateLastMiddlewareIsDispatcher(middlewares);
-            QueryBusMiddleware compositeMiddleware = Chain.manyIntoAQueryBusMiddleware(middlewares);
-            return compositeMiddleware.decorate((QueryBus) null);
-        }
-
-        /**
-         * Wraps a list of middleware into each other to create a composite one.
-         */
-        static QueryBusMiddleware manyIntoAQueryBusMiddleware(List<QueryBusMiddleware> middlewares) {
-
-            validate(middlewares);
-            if (middlewares.size() == 1) {
-                return middlewares.get(0);
-            }
-            return middlewares.get(0).decorate(manyIntoAQueryBusMiddleware(middlewares.subList(1, middlewares.size())));
-        }
-
-        private static void validate(List<QueryBusMiddleware> middlewares) {
-            if (middlewares == null) {
-                throw new RuntimeException("Can not create a middleware chain from a null list of middlewares");
-            }
-            if (middlewares.isEmpty()) {
-                throw new RuntimeException("Can not operate on an empty list of middlewares");
-            }
-            if (middlewares.stream().anyMatch(Objects::isNull)) {
-                throw new RuntimeException("Can not accept a null middleware in the lists of middlewares");
-            }
-        }
-
-        private static void validateLastMiddlewareIsDispatcher(List<QueryBusMiddleware> middlewares) {
-            QueryBusMiddleware lastMiddlewareInChain = middlewares.get(middlewares.size() - 1);
-            if (!lastMiddlewareInChain.getClass().isAssignableFrom(QueryBusDispatcher.class)) {
-                throw new RuntimeException(
-                        "The last middleware of the chain must always be the one dispatching to handlers.");
-            }
-        }
-
-    }
 }

@@ -1,12 +1,10 @@
 package com.barsifedron.candid.cqrs.command;
 
-import com.barsifedron.candid.cqrs.command.middleware.CommandBusDispatcher;
-import com.barsifedron.candid.cqrs.command.middleware.CommandResponseDomainEventsDispatcher;
+import com.barsifedron.candid.cqrs.command.middleware.DomainEventsDispatcher;
 import com.barsifedron.candid.cqrs.domainevent.DomainEvent;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
-import com.barsifedron.candid.cqrs.domainevent.DomainEventBusMiddleware;
 import com.barsifedron.candid.cqrs.domainevent.DomainEventHandler;
-import com.barsifedron.candid.cqrs.domainevent.middleware.DomainEventBusDispatcher;
+import com.barsifedron.candid.cqrs.domainevent.MapDomainEventBus;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -33,9 +31,9 @@ public class CommandBusMiddlewareTest {
 
         CommandBusMiddleware firstMiddleware = new CommandBusMiddleware() {
             @Override
-            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
                 logs.add("First middleware");
-                CommandResponse<T> commandResponse = bus.dispatch(command);
+                CommandResponse<T> commandResponse = next.dispatch(command);
                 logs.add("First middleware");
                 return commandResponse;
             }
@@ -43,9 +41,9 @@ public class CommandBusMiddlewareTest {
 
         CommandBusMiddleware secondMiddleware = new CommandBusMiddleware() {
             @Override
-            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+            public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
                 logs.add("\tSecond middleware");
-                CommandResponse<T> commandResponse = bus.dispatch(command);
+                CommandResponse<T> commandResponse = next.dispatch(command);
                 logs.add("\tSecond middleware");
                 return commandResponse;
             }
@@ -55,12 +53,12 @@ public class CommandBusMiddlewareTest {
             @Override
             public <T> CommandResponse<T> dispatch(Command<T> command) {
                 logs.add("\t\tDecorated bus execution.");
-                return new CommandBusDispatcher(new ProducesThreeEventsCommandHandler()).dispatch(command, null);
+                return new MapCommandBus(new ProducesThreeEventsCommandHandler()).dispatch(command);
             }
         };
 
         CommandBus commandBus = firstMiddleware.decorate(secondMiddleware.decorate(baseBus));
-        CommandBus secondCommandBus = (firstMiddleware.decorate(secondMiddleware)).decorate(baseBus);
+        CommandBus secondCommandBus = (firstMiddleware.compose(secondMiddleware)).decorate(baseBus);
 
         commandBus.dispatch(new CommandThatProducesThreeEvents());
         assertEquals(
@@ -83,47 +81,15 @@ public class CommandBusMiddlewareTest {
                 logs.stream().collect(Collectors.joining("\n")));
     }
 
-    @Test
-    public void shouldFailToConstructEmptyMiddlewareChain() {
-
-        assertThrows(
-                RuntimeException.class,
-                () ->
-                        CommandBusMiddleware.chainManyIntoACommandBus()
-        )
-
-        ;
-    }
-
-    @Test
-    public void shouldFailIfNoDispatcherMiddleware() {
-        assertThrows(
-                RuntimeException.class,
-                () -> CommandBusMiddleware.chainManyIntoACommandBus(new FirstTestMiddleware()));
-    }
-
-    @Test
-    public void shouldFailIfLastMiddlewareInChainIsNotTheDispatcher() {
-        assertThrows(
-                RuntimeException.class,
-                () ->
-
-                        CommandBusMiddleware.chainManyIntoACommandBus(
-                                new FirstTestMiddleware(),
-                                new CommandBusDispatcher(new HashSet<>()),
-                                new SecondTestMiddleware()
-                        ));
-    }
-
-    @Test
     public void shouldFailToProcessCommandsWhenNoMatchingHandler() {
         assertThrows(
-                CommandBusDispatcher.CommandHandlerNotFoundException.class,
+                MapCommandBus.CommandHandlerNotFoundException.class,
                 () -> CommandBusMiddleware
-                        .chainManyIntoACommandBus(
+                        .compositeOf(
                                 new FirstTestMiddleware(),
-                                new SecondTestMiddleware(),
-                                new CommandBusDispatcher(new HashSet<>()))
+                                new SecondTestMiddleware()
+                        )
+                        .decorate(new MapCommandBus(new HashSet<>()))
                         .dispatch(new CommandThatProducesThreeEvents()));
     }
 
@@ -132,9 +98,8 @@ public class CommandBusMiddlewareTest {
 
         // Given
         DomainEventBus domainEventBus = Mockito.mock(DomainEventBus.class);
-        CommandBus commandBus = CommandBusMiddleware.chainManyIntoACommandBus(
-                new CommandResponseDomainEventsDispatcher(domainEventBus),
-                new CommandBusDispatcher(new ProducesThreeEventsCommandHandler()));
+        CommandBus commandBus = new DomainEventsDispatcher(domainEventBus)
+                .decorate(new MapCommandBus(new ProducesThreeEventsCommandHandler()));
 
         // when
         CommandResponse<NoResult> response = commandBus.dispatch(new CommandThatProducesThreeEvents());
@@ -154,25 +119,44 @@ public class CommandBusMiddlewareTest {
         TestDomainEventHandler firstEventHandler = new TestDomainEventHandler(FirstTestDomainEvent.class);
         TestDomainEventHandler secondEventHandler = new TestDomainEventHandler(SecondTestDomainEvent.class);
         TestDomainEventHandler thirdEventHandler = new TestDomainEventHandler(ThirdTestDomainEvent.class);
-        DomainEventBus eventBus = DomainEventBusMiddleware.chainManyIntoADomainEventBus(
-                new DomainEventBusDispatcher(
-                        firstEventHandler,
-                        secondEventHandler,
-                        thirdEventHandler));
+        DomainEventBus eventBus = new MapDomainEventBus(
+                firstEventHandler,
+                secondEventHandler,
+                thirdEventHandler);
 
         // Given
-        CommandBus commandBus = CommandBusMiddleware.chainManyIntoACommandBus(
-                new CommandResponseDomainEventsDispatcher(eventBus),
-                new CommandBusDispatcher(new ProducesThreeEventsCommandHandler()));
+        CommandBus commandBus = CommandBusMiddleware.compositeOf(
+                new DomainEventsDispatcher(eventBus)).decorate(
+                new MapCommandBus(new ProducesThreeEventsCommandHandler()));
 
         // When
         commandBus.dispatch(new CommandThatProducesThreeEvents());
 
         // Then
+
         assertTrue(firstEventHandler.receivedEvent);
         assertTrue(secondEventHandler.receivedEvent);
         assertTrue(thirdEventHandler.receivedEvent);
 
+    }
+
+    static class LayeredMiddleware implements CommandBusMiddleware {
+
+        private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
+
+        Integer layer;
+
+        public LayeredMiddleware(Integer layer) {
+            this.layer = layer;
+        }
+
+        @Override
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
+            LOGGER.info(layer + " : dispatching");
+            CommandResponse<T> response = next.dispatch(command);
+            LOGGER.info(layer + " : dispatched");
+            return response;
+        }
     }
 
     static class FirstTestMiddleware implements CommandBusMiddleware {
@@ -180,9 +164,9 @@ public class CommandBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(FirstTestMiddleware.class.getName());
 
         @Override
-        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
             LOGGER.info("FirstTestMiddleware : dispatching");
-            CommandResponse<T> response = bus.dispatch(command);
+            CommandResponse<T> response = next.dispatch(command);
             LOGGER.info("FirstTestMiddleware : dispatched");
             return response;
         }
@@ -193,9 +177,9 @@ public class CommandBusMiddlewareTest {
         private final static Logger LOGGER = Logger.getLogger(SecondTestMiddleware.class.getName());
 
         @Override
-        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus bus) {
+        public <T> CommandResponse<T> dispatch(Command<T> command, CommandBus next) {
             LOGGER.info("SecondTestMiddleware : dispatching");
-            CommandResponse<T> response = bus.dispatch(command);
+            CommandResponse<T> response = next.dispatch(command);
             LOGGER.info("SecondTestMiddleware : dispatched");
             return response;
         }
