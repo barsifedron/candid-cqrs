@@ -13,7 +13,7 @@ import java.util.stream.Stream;
  * <p>
  * 1. Receive message
  * 2. Do some operation if you want (log the message for example)
- * 3. Forward the message to the decorated bus -> The decorated bus processes the message
+ * 3. Forward the message to the decorated bus -&gt; The decorated bus processes the message
  * 4. the decorated bus returns the result of the processing (when there is one)
  * 5. The Middleware intercepts the bus result and can do something with it IF you want (log the result for example)
  * 6. the middleware returns the result.
