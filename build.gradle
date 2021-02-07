@@ -15,6 +15,9 @@ subprojects {
             languageVersion = JavaLanguageVersion.of(8)
             vendor = JvmVendorSpec.ADOPTOPENJDK
         }
+        consistentResolution {
+            useCompileClasspathVersions()
+        }
     }
 
     repositories {
