@@ -30,19 +30,19 @@ jobs:
             - name: "setup jdk"
               uses: actions/setup-java@v1
               with:
-                  java-version: ${{ matrix.java }}
+                  java-version: 11
 
             - name: "./gradlew build --dry-run"
               uses: eskatos/gradle-command-action@v1
               with:
-                  arguments: build --dry-run
+                  arguments: build --dry-run -PtestJavaHome=${{ matrix.java }}
               env:
                   CI: true
 
             - name: "./gradlew build"
               uses: eskatos/gradle-command-action@v1
               with:
-                  arguments: build
+                  arguments: build -PtestJavaHome=${{ matrix.java }}
               env:
                   CI: true
 
