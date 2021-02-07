@@ -30,4 +30,15 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
     }
+
+    def testJavaVersion = providers.gradleProperty("testJavaVersion")
+            .forUseAtConfigurationTime()
+            .map { it.toInteger() }
+            .orElse(8)
+
+    tasks.withType(Test).configureEach {
+        it.javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(testJavaVersion.get()))
+        })
+    }
 }
