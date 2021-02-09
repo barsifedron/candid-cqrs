@@ -12,3 +12,8 @@ include(
 )
 include 'cqrs-spring-utils'
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

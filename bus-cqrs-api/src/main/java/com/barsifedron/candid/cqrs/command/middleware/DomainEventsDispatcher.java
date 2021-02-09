@@ -27,8 +27,7 @@ import com.barsifedron.candid.cqrs.domainevent.DomainEventBus;
  * <li>New aggregate state persistence</li>
  * <li>Projections or other things affecting the database (Maybe. On a per use case basis)</li>
  * <li>Your "intent" to communicate changes to the outside world</li>
- * <ul/>
- * <p>
+ * </ul>
  */
 public class DomainEventsDispatcher implements CommandBusMiddleware {
 

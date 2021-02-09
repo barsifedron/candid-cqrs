@@ -1,3 +1,7 @@
+java {
+    withJavadocJar()
+}
+
 dependencies {
 
     implementation project(":bus-cqrs-api")

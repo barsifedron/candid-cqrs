@@ -5,7 +5,12 @@ plugins {
 group = 'com.barsifedron.candid.cqrs'
 version = '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+        vendor = JvmVendorSpec.ADOPTOPENJDK
+    }
+}
 
 repositories {
     mavenCentral()

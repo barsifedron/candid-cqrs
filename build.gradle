@@ -10,15 +10,35 @@ allprojects {
 subprojects {
     apply plugin: "java-library"
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-
-    repositories {
-        mavenCentral()
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(8)
+            vendor = JvmVendorSpec.ADOPTOPENJDK
+        }
+        consistentResolution {
+            useCompileClasspathVersions()
+        }
+        withSourcesJar()
     }
 
     dependencies {
         testImplementation "org.junit.jupiter:junit-jupiter-engine:5.6.2"
         testImplementation "org.mockito:mockito-core:2.23.0"
+    }
+
+    tasks.withType(AbstractArchiveTask).configureEach {
+        preserveFileTimestamps = false
+        reproducibleFileOrder = true
+    }
+
+    def testJavaVersion = providers.gradleProperty("testJavaVersion")
+            .forUseAtConfigurationTime()
+            .map { it.toInteger() }
+            .orElse(8)
+
+    tasks.withType(Test).configureEach {
+        it.javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(JavaLanguageVersion.of(testJavaVersion.get()))
+        })
     }
 }
