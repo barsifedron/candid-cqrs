@@ -4,12 +4,10 @@ import com.barsifedron.candid.cqrs.query.Query;
 import com.barsifedron.candid.cqrs.query.QueryBus;
 import com.barsifedron.candid.cqrs.query.QueryBusMiddleware;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
-@CacheConfig(cacheNames = "queries")
 public class CacheQueryBusMiddleware implements QueryBusMiddleware {
 
     @Autowired
