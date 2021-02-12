@@ -1,5 +1,7 @@
 package com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.query;
 
+import com.barsifedron.candid.cqrs.command.CommandBusMiddleware;
+import com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.query.middleware.CacheQueryBusMiddleware;
 import com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.query.middleware.ExecutionDurationLoggingQueryBusMiddleware;
 import com.barsifedron.candid.cqrs.happy.utils.cqrs.query.ValidatingQueryBusMiddleware;
 import com.barsifedron.candid.cqrs.happy.utils.cqrs.query.middleware.DetailedLoggingQueryBusMiddleware;
@@ -16,13 +18,17 @@ import org.springframework.stereotype.Component;
 public class QueryBusFactory {
 
     private final QueryHandlersRegistry queryHandlersRegistry;
+    private final CacheQueryBusMiddleware cacheQueryBusMiddleware;
 
     @Autowired
-    public QueryBusFactory(ApplicationContext applicationContext) {
+    public QueryBusFactory(
+            ApplicationContext applicationContext,
+            CacheQueryBusMiddleware cacheQueryBusMiddleware) {
         this.queryHandlersRegistry = new QueryHandlersRegistry(
                 applicationContext,
                 "com.barsifedron.candid.cqrs.springboot.app",
                 "com.barsifedron.candid.cqrs.happy.query");
+        this.cacheQueryBusMiddleware = cacheQueryBusMiddleware;
     }
 
     public QueryBus simpleBus() {
@@ -32,7 +38,12 @@ public class QueryBusFactory {
                         new ExceptionLoggingQueryBusMiddleware(),
                         new DetailedLoggingQueryBusMiddleware(),
                         new ExecutionDurationLoggingQueryBusMiddleware(),
+                        cacheMiddleware(),
                         new ValidatingQueryBusMiddleware())
                 .decorate(new MapQueryBus(queryHandlersRegistry.handlers()));
+    }
+
+    private QueryBusMiddleware cacheMiddleware() {
+        return cacheQueryBusMiddleware::runInCache;
     }
 }
