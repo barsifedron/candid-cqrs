@@ -1,13 +1,14 @@
 package com.barsifedron.candid.cqrs.happy.domainevents;
 
 import com.barsifedron.candid.cqrs.domainevent.DomainEventHandler;
+import com.barsifedron.candid.cqrs.domainevent.ToProcessAfterMainTransaction;
 import com.barsifedron.candid.cqrs.happy.command.BorrowItemCommandHandler;
 import com.barsifedron.candid.cqrs.happy.domain.Email;
 import com.barsifedron.candid.cqrs.happy.domain.EmailRepository;
 
 import javax.inject.Inject;
 
-public class ItemBorrowedDomainEventHandler implements DomainEventHandler<ItemBorrowedDomainEvent> {
+public class ItemBorrowedDomainEventHandler implements DomainEventHandler<ItemBorrowedDomainEvent>, ToProcessAfterMainTransaction {
 
     private final EmailRepository emailRepository;
 

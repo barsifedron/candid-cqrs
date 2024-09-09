@@ -11,6 +11,7 @@ import com.barsifedron.candid.cqrs.happy.domain.LoanRepository;
 import com.barsifedron.candid.cqrs.happy.domain.MemberId;
 import com.barsifedron.candid.cqrs.happy.query.GetMemberQuery;
 import com.barsifedron.candid.cqrs.happy.query.GetMemberQueryHandler;
+import com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.command.CommandBusFactory;
 import com.barsifedron.candid.cqrs.happy.shell.utils.cqrs.query.QueryBusFactory;
 import com.barsifedron.candid.cqrs.happy.utils.cqrs.command.middleware.ValidatingCommandBusMiddleware;
 import org.springframework.http.HttpStatus;
@@ -36,15 +37,16 @@ public class MembersController {
 
     private final CommandBus commandBus;
     private final QueryBusFactory queryBusFactory;
-    private final LoanRepository loanRepository;
+    private final CommandBusFactory commandBusFactory;
 
     @Inject
-    public MembersController(CommandBus commandBus,
+    public MembersController(
+            CommandBus commandBus,
             QueryBusFactory queryBusFactory,
-            LoanRepository loanRepository) {
+            CommandBusFactory commandBusFactory) {
         this.commandBus = commandBus;
         this.queryBusFactory = queryBusFactory;
-        this.loanRepository = loanRepository;
+        this.commandBusFactory = commandBusFactory;
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -65,7 +67,9 @@ public class MembersController {
             @PathVariable String memberId,
             @RequestBody BorrowItemCommand borrowItemCommand) {
 
-        CommandResponse<LoanId> commandResponse = commandBus.dispatch(borrowItemCommand
+        CommandResponse<LoanId> commandResponse = commandBusFactory
+                .complexBus()
+                .dispatch(borrowItemCommand
                 .toBuilder()
                 .loanId(new LoanId().asString())
                 .memberId(memberId)
@@ -104,14 +108,14 @@ public class MembersController {
     // Spring handling of errors is pretty bad
     //
 
-    @ExceptionHandler(value = { ValidatingCommandBusMiddleware.IllegalCommandException.class })
+    @ExceptionHandler(value = {ValidatingCommandBusMiddleware.IllegalCommandException.class})
     public void onValidationExceptions(RuntimeException e, HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
 
     @ExceptionHandler(value = {
             RegisterNewMemberCommandHandler.EmailAlreadyInUseException.class,
-            RegisterNewMemberCommandHandler.MemberIdAlreadyInUseException.class })
+            RegisterNewMemberCommandHandler.MemberIdAlreadyInUseException.class})
     public void onRegisterMemberExceptions(RuntimeException e, HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.BAD_REQUEST.value(), e.getMessage());
     }
