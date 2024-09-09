@@ -45,6 +45,7 @@ public class GetPeriodReportQueryHandler
         Map<ItemId, Group> periodLoans = new JPAQueryFactory(entityManager)
                 .from(loan, item)
                 .where(
+                        loan.itemId.eq(item.id),
                         loan.effectiveReturnOn.isNotNull(),
                         loan.borrowedOn.after(query.periodStartDate.minusDays(1)),
                         loan.effectiveReturnOn.before(query.periodEndDate.plusDays(1)))
