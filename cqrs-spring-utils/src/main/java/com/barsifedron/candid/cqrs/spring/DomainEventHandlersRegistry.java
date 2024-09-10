@@ -30,7 +30,6 @@ import static java.util.stream.Collectors.toList;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class DomainEventHandlersRegistry {
 
-    private final Map<Class<DomainEvent>, List<Supplier<DomainEventHandler>>> map = new HashMap<>();
     private final DomainEventHandlerInfoList allEventHandlersInfoList;
 
     @Autowired
@@ -50,7 +49,6 @@ public class DomainEventHandlersRegistry {
      */
     public DomainEventHandlersRegistry(ApplicationContext applicationContext, String... packages) {
 
-        Stream.of(packages).forEach(System.out::print);
         registerHandlersToApplicationContext(applicationContext, packages);
 
         String[] handlersClassNames = applicationContext.getBeanNamesForType(DomainEventHandler.class);
