@@ -50,7 +50,7 @@ public class StartupApplicationListenerExample implements
                         .build()
         );
 
-        commandBusFactory.simpleBus().dispatch(
+        commandBusFactory.withOutsideTransactionCapability().dispatch(
                 BorrowItemCommand
                         .builder()
                         .itemId("hammerId")
@@ -68,7 +68,7 @@ public class StartupApplicationListenerExample implements
                         .build()
         );
 
-        commandBusFactory.simpleBus().dispatch(
+        commandBusFactory.withOutsideTransactionCapability().dispatch(
                 BorrowItemCommand
                         .builder()
                         .itemId("hammerId")
@@ -86,7 +86,7 @@ public class StartupApplicationListenerExample implements
                         .build()
         );
 
-        commandBusFactory.simpleBus().dispatch(
+        commandBusFactory.withOutsideTransactionCapability().dispatch(
                 BorrowItemCommand
                         .builder()
                         .itemId("hammerId")

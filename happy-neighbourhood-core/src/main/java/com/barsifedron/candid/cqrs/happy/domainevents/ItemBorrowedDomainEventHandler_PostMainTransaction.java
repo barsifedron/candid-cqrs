@@ -7,18 +7,26 @@ import com.barsifedron.candid.cqrs.happy.domain.Email;
 import com.barsifedron.candid.cqrs.happy.domain.EmailRepository;
 
 import javax.inject.Inject;
+import java.util.logging.Logger;
 
-public class ItemBorrowedDomainEventHandler implements DomainEventHandler<ItemBorrowedDomainEvent>, ToProcessAfterMainTransaction {
+public class ItemBorrowedDomainEventHandler_PostMainTransaction implements DomainEventHandler<ItemBorrowedDomainEvent>, ToProcessAfterMainTransaction {
 
     private final EmailRepository emailRepository;
+    static Logger LOGGER = Logger.getLogger(ItemBorrowedDomainEventHandler_PostMainTransaction.class.getName());
+
 
     @Inject
-    public ItemBorrowedDomainEventHandler(EmailRepository emailRepository) {
+    public ItemBorrowedDomainEventHandler_PostMainTransaction(EmailRepository emailRepository) {
         this.emailRepository = emailRepository;
     }
 
     @Override
     public void handle(ItemBorrowedDomainEvent event) {
+
+        LOGGER.info("" +
+                "This event handler executes AFTER the main transaction " +
+                "due to the use of the marker interface : ToProcessAfterMainTransaction " +
+                "AND the proper configuration of the smart command bus. (@see the CommandBusFactory class)");
 
         if (event.notification == BorrowItemCommandHandler.NOTIFICATION.NONE) {
             return;

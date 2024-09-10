@@ -54,7 +54,7 @@ public class DomainEventBusFactory {
     /**
      * This bus will include and execute ALL handlers found in the configured classpath
      */
-    public DomainEventBus withAllHandlersEventBus() {
+    public DomainEventBus basicEventBus() {
         return new MapDomainEventBus(domainEventHandlersRegistry.handlersList().asMap());
     }
 

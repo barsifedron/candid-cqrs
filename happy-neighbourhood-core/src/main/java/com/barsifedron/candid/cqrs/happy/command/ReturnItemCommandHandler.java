@@ -71,11 +71,7 @@ public class ReturnItemCommandHandler implements CommandHandler<NoResult, Return
             throw new UnknownItemException(command.itemId);
         }
 
-        System.out.println("loans.all() = " + loans.all());
         List<Loan> loans = this.loans.forItem(new ItemId(command.itemId), Loan.STATUS.values());
-        System.out.println("loans = " + loans);
-
-
 
         List<Loan> activeLoan = this.loans.forItem(new ItemId(command.itemId), Loan.STATUS.IN_PROGRESS);
         if (activeLoan.isEmpty() && command.ifNoActiveLoanIsFound == ReturnItemCommand.IF_NO_ACTIVE_LOAN_FOUND.FAIL) {

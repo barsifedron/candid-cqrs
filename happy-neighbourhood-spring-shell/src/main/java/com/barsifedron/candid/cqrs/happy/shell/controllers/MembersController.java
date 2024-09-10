@@ -7,7 +7,6 @@ import com.barsifedron.candid.cqrs.happy.command.BorrowItemCommandHandler;
 import com.barsifedron.candid.cqrs.happy.command.RegisterNewMemberCommand;
 import com.barsifedron.candid.cqrs.happy.command.RegisterNewMemberCommandHandler;
 import com.barsifedron.candid.cqrs.happy.domain.LoanId;
-import com.barsifedron.candid.cqrs.happy.domain.LoanRepository;
 import com.barsifedron.candid.cqrs.happy.domain.MemberId;
 import com.barsifedron.candid.cqrs.happy.query.GetMemberQuery;
 import com.barsifedron.candid.cqrs.happy.query.GetMemberQueryHandler;
@@ -68,7 +67,7 @@ public class MembersController {
             @RequestBody BorrowItemCommand borrowItemCommand) {
 
         CommandResponse<LoanId> commandResponse = commandBusFactory
-                .complexBus()
+                .withOutsideTransactionCapability()
                 .dispatch(borrowItemCommand
                 .toBuilder()
                 .loanId(new LoanId().asString())
